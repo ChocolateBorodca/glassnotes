@@ -2,15 +2,20 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Notes club</title>
     
-    <!-- ПРОВЕРЕННЫЙ ФОРМАТ ИКОНКИ ДЛЯ ЯРЛЫКОВ РАБОЧЕГО СТОЛА -->
-    <link rel="icon" type="image/png" href="https://postimg.cc">
-    <link rel="apple-touch-icon" href="https://postimg.cc">
-    <link rel="apple-touch-icon-precomposed" href="https://postimg.cc">
+    <!-- СВЯЗЬ С ЛОКАЛЬНОЙ ИКОНКОЙ В РЕПОЗИТОРИИ GITHUB -->
+    <link rel="icon" type="image/png" href="logo.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="logo.png">
+    <link rel="apple-touch-icon" href="logo.png">
+    <link rel="apple-touch-icon-precomposed" href="logo.png">
+    
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Notes club">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#000000">
 
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif; }
@@ -40,8 +45,8 @@
             text-align: center; box-shadow: 0 30px 60px rgba(0,0,0,0.9);
         }
         .auth-logo-img {
-            width: 80px; height: 80px; border-radius: 20px; margin-bottom: 16px;
-            border: 1px solid rgba(255,255,255,0.05); box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            width: 84px; height: 84px; border-radius: 22px; margin-bottom: 18px;
+            border: 1px solid rgba(255,255,255,0.08); box-shadow: 0 12px 28px rgba(0,0,0,0.6);
         }
         .auth-box h2 { color: #fff; font-size: 24px; margin-bottom: 8px; font-weight: 700; letter-spacing: -0.5px; }
         .auth-box p { color: rgba(255, 255, 255, 0.2); font-size: 13px; margin-bottom: 24px; }
@@ -139,10 +144,10 @@
 </head>
 <body>
 
-    <!-- ЭКРАН ВХОДА С ЛОГОТИПОМ -->
+    <!-- ЭКРАН ВХОДА С ЛОКАЛЬНЫМ ЛОГОТИПОМ -->
     <div class="auth-screen" id="auth-screen">
         <div class="auth-box">
-            <img src="https://postimg.cc" class="auth-logo-img" alt="logo">
+            <img src="logo.png" class="auth-logo-img" alt="logo">
             <h2>Notes club</h2>
             <p>Вход в пространство мыслей</p>
             <input type="text" id="auth-username" class="glass-input" placeholder="Ваше имя...">
@@ -196,7 +201,7 @@
         </div>
     </div>
 
-    <!-- ТОТ САМЫЙ ОРИГИНАЛЬНЫЙ СИНТЕЗАТОР ONEHEART -->
+    <!-- ТОТ САМЫЙ ОРИГИНАЛЬНЫЙ МАТЕМАТИЧЕСКИЙ СИНТЕЗАТОР ONEHEART -->
     <script>
         let currentUser = localStorage.getItem('nc_cloud_user') || "";
         let isPublicNote = false;
@@ -291,12 +296,13 @@
                     mutateAudioLayers();
                 }, 120000);    
                 isMusicRunning = true;
-            } catch(e) {}
+                console.log("Генеративный звук успешно активирован процессором.");
+            } catch(e) { console.log("Сбой аудиопроцессора: ", e); }
         }
 
-        // Клик по любому месту экрана принудительно включает генератор звуков
-        document.body.addEventListener('click', startGenerativeEngine, { once: false });
-        document.body.addEventListener('touchstart', startGenerativeEngine, { once: false });
+        // Любое касание экрана принудительно разблокирует аудио-узел
+        document.body.addEventListener('click', startGenerativeEngine);
+        document.body.addEventListener('touchstart', startGenerativeEngine);
 
         if (currentUser) {
             document.getElementById('auth-screen').style.display = 'none';
