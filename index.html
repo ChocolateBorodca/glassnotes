@@ -9,9 +9,6 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
-    <!-- Официальный клиент Supabase для вечного хранения заметок в облаке -->
-    <script src="https://jsdelivr.net"></script>
-
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif; }
         
@@ -191,27 +188,19 @@
         </div>
     </div>
 
-    <!-- АУДИОДВИЖОК ONEHEART + ОБЛАКО SUPABASE -->
+    <!-- ИСПРАВЛЕННЫЙ AUDIO ДВИЖОК ONEHEART + DIRECT SUPABASE FETCH API -->
     <script>
-        // ИНИЦИАЛИЗАЦИЯ ВСЕХ ГЛОВБАЛЬНЫХ ПЕРЕМЕННЫХ НАВЕРХУ (ДЛЯ ЗАЩИТЫ ОТ БАГА INITIALIZATION)
+        // Глобальные переменные СТРОГО инициализируются на первой строчке тега script
         let currentUser = localStorage.getItem('nc_cloud_user') || "";
         let isPublicNote = false;
         let currentFeedChannel = "my";
         let localMyNotes = JSON.parse(localStorage.getItem('nc_local_my_db')) || []; 
         let cloudPublicNotes = []; 
 
-        const SUPABASE_URL = "https://supabase.co"; 
-        const SUPABASE_ANON_KEY = "sb_publishable_fm9-bWhIWtekOx1-vg9i6Q_ZOMs4ZDJlZmM0ZTktODU3Zi00N2VmLTkzYTEtZTFiNmY0YTU5ZmI0";
+        const API_URL = "https://supabase.co"; 
+        const API_KEY = "sb_publishable_fm9-bWhIWtekOx1-vg9i6Q_ZOMs4ZDJlZmM0ZTktODU3Zi00N2VmLTkzYTEtZTFiNmY0YTU5ZmI0";
 
-        // Безопасное подключение к облаку
-        let supabase = null;
-        try {
-            if (window.supabase) {
-                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-            }
-        } catch(e) { console.log("Supabase initialization hidden"); }
-
-        // Проверка сессии
+        // Проверка сессии вынесена в безопасную зону после инициализации переменных
         if (currentUser) {
             document.getElementById('auth-screen').style.display = 'none';
             fetchCloudNotes();
@@ -231,23 +220,26 @@
                 fetchCloudNotes();
                 startGenerativeEngine();
             } catch(err) {
-                alert("Ошибка: " + err.message);
+                alert("Ошибка авторизации: " + err.message);
             }
         }
 
-        async function fetchCloudNotes() {
-            if (!supabase) return;
-            try {
-                const { data, error } = await supabase
-                    .from('notes')
-                    .select('*')
-                    .order('id', { ascending: false });
-                
-                if (!error && data) {
+        function fetchCloudNotes() {
+            fetch(`${API_URL}?select=*&order=id.desc`, {
+                method: "GET",
+                headers: {
+                    "apikey": API_KEY,
+                    "Authorization": `Bearer ${API_KEY}`
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (Array.isArray(data)) {
                     cloudPublicNotes = data;
                     renderNotesList();
                 }
-            } catch(e) {}
+            })
+            .catch(err => console.log("Сбой сети, работа в автономном режиме."));
         }
 
         // КРИСТАЛЬНО ЧИСТЫЙ СИНТЕЗАТОР ONEHEART
@@ -367,7 +359,7 @@
             renderNotesList();
         }
 
-        async function publishNote() {
+        function publishNote() {
             const bField = document.getElementById('note-text');
             if (bField.value.trim() === "") return;
             
@@ -387,10 +379,18 @@
             localMyNotes.unshift(newNote);
             localStorage.setItem('nc_local_my_db', JSON.stringify(localMyNotes));
 
-            if (isPublicNote && supabase) {
-                try {
-                    await supabase.from('notes').insert([newNote]);
-                } catch(e) {}
+            if (isPublicNote) {
+                fetch(API_URL, {
+                    method: "POST",
+                    headers: {
+                        "apikey": API_KEY,
+                        "Authorization": `Bearer ${API_KEY}`,
+                        "Content-Type": "application/json",
+                        "Prefer": "return=representation"
+                    },
+                    body: JSON.stringify(newNote)
+                })
+                .then(() => fetchCloudNotes());
             }
             
             document.getElementById('note-heading').value = "";
@@ -411,10 +411,10 @@
 
                 const card = document.createElement('div');
                 card.classList.add('note-item');
-                card.addEventListener('click', (e) => {
+                card.onclick = (e) => {
                     if (e.target.tagName === 'BUTTON') return;
                     openNoteViewer(note);
-                });
+                };
                 
                 const deleteBtn = (currentFeedChannel === 'my') ? `<button class="action-del" onclick="deleteNote(${note.id || 0}, '${note.title}', event)">✕</button>` : '';
 
@@ -437,21 +437,21 @@
             renderNotesList(document.getElementById('search-input').value);
         }
 
-        async function deleteNote(id, title, event) {
+        function deleteNote(id, title, event) {
             event.stopPropagation();
             localMyNotes = localMyNotes.filter(note => note.title !== title);
             localStorage.setItem('nc_local_my_db', JSON.stringify(localMyNotes));
             
-            if (supabase) {
-                try {
-                    if (id) {
-                        await supabase.from('notes').delete().eq('id', id);
-                    } else {
-                        await supabase.from('notes').delete().eq('title', title).eq('author', currentUser);
-                    }
-                } catch(e) {}
-            }
-            fetchCloudNotes();
+            let deleteUrl = id ? `${API_URL}?id=eq.${id}` : `${API_URL}?title=eq.${encodeURIComponent(title)}&author=eq.${encodeURIComponent(currentUser)}`;
+            
+            fetch(deleteUrl, {
+                method: "DELETE",
+                headers: {
+                    "apikey": API_KEY,
+                    "Authorization": `Bearer ${API_KEY}`
+                }
+            })
+            .then(() => fetchCloudNotes());
         }
 
         function openNoteViewer(note) {
