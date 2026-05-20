@@ -188,9 +188,8 @@
         </div>
     </div>
 
-    <!-- ИСПРАВЛЕННЫЙ AUDIO ДВИЖОК ONEHEART + DIRECT SUPABASE FETCH API -->
+    <!-- АУДИОДВИЖОК ONEHEART + DIRECT SUPABASE FETCH API -->
     <script>
-        // Глобальные переменные СТРОГО инициализируются на первой строчке тега script
         let currentUser = localStorage.getItem('nc_cloud_user') || "";
         let isPublicNote = false;
         let currentFeedChannel = "my";
@@ -200,7 +199,6 @@
         const API_URL = "https://supabase.co"; 
         const API_KEY = "sb_publishable_fm9-bWhIWtekOx1-vg9i6Q_ZOMs4ZDJlZmM0ZTktODU3Zi00N2VmLTkzYTEtZTFiNmY0YTU5ZmI0";
 
-        // Проверка сессии вынесена в безопасную зону после инициализации переменных
         if (currentUser) {
             document.getElementById('auth-screen').style.display = 'none';
             fetchCloudNotes();
@@ -239,7 +237,7 @@
                     renderNotesList();
                 }
             })
-            .catch(err => console.log("Сбой сети, работа в автономном режиме."));
+            .catch(err => console.log("Сбой загрузки ленты рекомендаций."));
         }
 
         // КРИСТАЛЬНО ЧИСТЫЙ СИНТЕЗАТОР ONEHEART
@@ -369,6 +367,7 @@
             const timeStamp = new Date().toLocaleTimeString('ru-RU', {hour: '2-digit', minute:'2-digit'}) + ' · ' + new Date().toLocaleDateString('ru-RU', {day: '2-digit', month: '2-digit'});
 
             const newNote = {
+                id: Date.now(), // Уникальный id для удаления
                 title: heading,
                 body: bField.value.trim(),
                 author: currentUser,
@@ -380,6 +379,7 @@
             localStorage.setItem('nc_local_my_db', JSON.stringify(localMyNotes));
 
             if (isPublicNote) {
+                // Отправляем в Supabase
                 fetch(API_URL, {
                     method: "POST",
                     headers: {
@@ -390,13 +390,21 @@
                     },
                     body: JSON.stringify(newNote)
                 })
-                .then(() => fetchCloudNotes());
+                .then(() => {
+                    // ИСПРАВЛЕННЫЙ БАГ: Сразу принудительно качаем облако, чтобы пост появился в рекомендациях!
+                    fetchCloudNotes();
+                });
             }
             
             document.getElementById('note-heading').value = "";
             bField.value = "";
             
-            setFeedChannel('my');
+            // Сразу перекидываем в рекомендации, если пост был публичным
+            if (isPublicNote) {
+                setFeedChannel('feed');
+            } else {
+                setFeedChannel('my');
+            }
             switchScreen('list');
         }
 
@@ -416,6 +424,7 @@
                     openNoteViewer(note);
                 };
                 
+                // Удаление теперь доступно только на твоих постах в "Моих заметках"
                 const deleteBtn = (currentFeedChannel === 'my') ? `<button class="action-del" onclick="deleteNote(${note.id || 0}, '${note.title}', event)">✕</button>` : '';
 
                 card.innerHTML = `
@@ -437,11 +446,16 @@
             renderNotesList(document.getElementById('search-input').value);
         }
 
+        // ИСПРАВЛЕННЫЙ БАГ УДАЛЕНИЯ: Заметка исчезает с экрана МГНОВЕННО
         function deleteNote(id, title, event) {
             event.stopPropagation();
+            
+            // 1. Мгновенно вырезаем из локального экрана, чтобы не ждать сервер
             localMyNotes = localMyNotes.filter(note => note.title !== title);
             localStorage.setItem('nc_local_my_db', JSON.stringify(localMyNotes));
-            
+            renderNotesList(); // Моментальный апдейт интерфейса!
+
+            // 2. Отправляем скрытый фоновый запрос на удаление в Supabase
             let deleteUrl = id ? `${API_URL}?id=eq.${id}` : `${API_URL}?title=eq.${encodeURIComponent(title)}&author=eq.${encodeURIComponent(currentUser)}`;
             
             fetch(deleteUrl, {
@@ -451,7 +465,15 @@
                     "Authorization": `Bearer ${API_KEY}`
                 }
             })
-            .then(() => fetchCloudNotes());
+            .then(() => {
+                // Фоново обновляем массив облака
+                fetch(`${API_URL}?select=*&order=id.desc`, {
+                    method: "GET",
+                    headers: { "apikey": API_KEY, "Authorization": `Bearer ${API_KEY}` }
+                })
+                .then(res => res.json())
+                .then(data => { if (Array.isArray(data)) cloudPublicNotes = data; });
+            });
         }
 
         function openNoteViewer(note) {
