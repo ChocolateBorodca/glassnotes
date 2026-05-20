@@ -30,11 +30,19 @@ jobs:
         pip install --upgrade pip
         pip install buildozer cython setuptools sh virtualenv
 
-    - name: Build APK with Buildozer
+    - name: Pre-accept Android SDK Licenses
+      run: |
+        mkdir -p ~/.android
+        touch ~/.android/repositories.cfg
+        yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses
+
+    - name: Build APK with Buildozer using System SDK
       run: |
         buildozer android debug
       env:
         APP_ANDROID_ACCEPT_SDK_LICENSE: "1"
+        ANDROID_HOME: ${{ env.ANDROID_HOME }}
+        ANDROID_NDK_HOME: ${{ env.ANDROID_NDK_HOME }}
 
     - name: Upload APK
       uses: actions/upload-artifact@v4
