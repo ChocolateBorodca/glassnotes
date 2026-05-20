@@ -190,7 +190,7 @@
 
     <!-- АУДИОДВИЖОК ONEHEART + ОБЛАКО SUPABASE -->
     <script>
-        // Глобальная инициализация параметров данных
+        // Инициализация переменных на самом верху скрипта
         let currentUser = localStorage.getItem('nc_cloud_user') || "";
         let isPublicNote = false;
         let currentFeedChannel = "my";
@@ -206,23 +206,20 @@
         }
 
         function handleLogin() {
-            try {
-                const user = document.getElementById('auth-username').value.trim();
-                const pass = document.getElementById('auth-password').value.trim();
-                if (!user || !pass) return;
-                
-                currentUser = user;
-                localStorage.setItem('nc_cloud_user', user);
-                document.getElementById('auth-screen').style.opacity = '0';
-                setTimeout(() => { document.getElementById('auth-screen').style.display = 'none'; }, 500);
-                
-                fetchCloudNotes();
-                startGenerativeEngine();
-            } catch(err) {
-                alert("Ошибка авторизации: " + err.message);
-            }
+            const user = document.getElementById('auth-username').value.trim();
+            const pass = document.getElementById('auth-password').value.trim();
+            if (!user || !pass) return;
+            
+            currentUser = user;
+            localStorage.setItem('nc_cloud_user', user);
+            document.getElementById('auth-screen').style.opacity = '0';
+            setTimeout(() => { document.getElementById('auth-screen').style.display = 'none'; }, 500);
+            
+            fetchCloudNotes();
+            startGenerativeEngine();
         }
 
+        // АВТОДИАГНОСТИКА: Логирует точную причину сбоя прямо на экран
         function fetchCloudNotes() {
             fetch(`${API_URL}?select=*&order=id.desc`, {
                 method: "GET",
@@ -231,14 +228,27 @@
                     "Authorization": `Bearer ${API_KEY}`
                 }
             })
-            .then(res => res.json())
+            .then(res => {
+                if (!res.ok) {
+                    // Если сервер выдал ошибку (404, 400), выводим текст ошибки
+                    return res.json().then(err => { throw new Error(err.message || res.statusText); });
+                }
+                return res.json();
+            })
             .then(data => {
                 if (Array.isArray(data)) {
                     cloudPublicNotes = data;
-                    renderNotesList();
+                } else {
+                    cloudPublicNotes = [];
                 }
+                renderNotesList();
             })
-            .catch(err => console.log("Сбой загрузки ленты рекомендаций."));
+            .catch(err => {
+                // Выводим точную причину ошибки нативным окном
+                alert("Диагностика системы:\n" + err.message);
+                cloudPublicNotes = [];
+                renderNotesList();
+            });
         }
 
         // КРИСТАЛЬНО ЧИСТЫЙ СИНТЕЗАТОР ONEHEART
@@ -365,7 +375,6 @@
             
             const timeStamp = new Date().toLocaleTimeString('ru-RU', {hour: '2-digit', minute:'2-digit'}) + ' · ' + new Date().toLocaleDateString('ru-RU', {day: '2-digit', month: '2-digit'});
 
-            // СТРОГАЯ АЛФАВИТНАЯ СОРТИРОВКА КЛЮЧЕЙ ДЛЯ БЕЗОШИБОЧНОГО СИНТАКСИСА SUPABASE REST API
             const newNote = {
                 author: currentUser,
                 body: bField.value.trim(),
@@ -388,9 +397,14 @@
                     },
                     body: JSON.stringify(newNote)
                 })
+                .then(res => {
+                    if (!res.ok) return res.json().then(err => { throw new Error(err.message); });
+                    return res.json();
+                })
                 .then(() => {
                     fetchCloudNotes();
-                });
+                })
+                .catch(err => alert("Ошибка отправки поста:\n" + err.message));
             }
             
             document.getElementById('note-heading').value = "";
@@ -409,6 +423,8 @@
             container.innerHTML = "";
 
             const activeList = (currentFeedChannel === 'my') ? localMyNotes : cloudPublicNotes;
+
+            if (!Array.isArray(activeList)) return;
 
             activeList.forEach((note) => {
                 if (filterQuery && !note.title.toLowerCase().includes(filterQuery.toLowerCase())) return;
