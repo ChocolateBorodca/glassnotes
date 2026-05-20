@@ -58,7 +58,7 @@
         }
 
         .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .logo { color: #ffffff; font-size: 21px; font-weight: 700; letter-spacing: -0.5px; }
+        .logo { color: #ffffff; font-size: 21px; font-weight: 700; letter-spacing: -0.5px; padding-bottom: 4px; }
         
         .tabs { display: flex; background: rgba(255,255,255,0.015); padding: 3px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.01); }
         .tab-btn {
@@ -143,9 +143,6 @@
         .viewer-author { font-size: 12px; color: rgba(255,255,255,0.3); margin-bottom: 20px; font-weight: 600; text-transform: lowercase; }
         .viewer-body { color: rgba(255,255,255,0.65); font-size: 15px; line-height: 1.6; overflow-y: auto; flex: 1; word-break: break-word; }
         .viewer-body::-webkit-scrollbar { width: 0px; }
-        
-        /* ТЕКСТ ТЕКУЩЕГО ТРЕКА */
-        .track-info { font-size: 9px; color: rgba(255,255,255,0.15); text-transform: uppercase; letter-spacing: 1px; font-weight: 700; margin-top: 4px; }
     </style>
 </head>
 <body>
@@ -173,10 +170,7 @@
         </div>
 
         <div class="top-bar">
-            <div>
-                <div class="logo">Notes club</div>
-                <div class="track-info" id="track-display">Audio: Off</div>
-            </div>
+            <div class="logo">Notes club</div>
             <div class="tabs">
                 <button class="tab-btn active" id="tab-write" onclick="switchScreen('write')">Писать</button>
                 <button class="tab-btn" id="tab-list" onclick="switchScreen('list')">Лента</button>
@@ -209,21 +203,15 @@
         </div>
     </div>
 
-    <!-- АЛГОРИТМИЧЕСКИЙ ЖИВОЙ ЗВУКОВОЙ ДВИЖОК -->
+    <!-- КРИСТАЛЬНО ЧИСТЫЙ АЛГОРИТМИЧЕСКИЙ AUDIO ДВИЖОК ONEHEART -->
     <script>
         let audioCtx = null;
         let isMusicRunning = false;
-        let currentUser = localStorage.getItem('notes_club_user_v4') || "";
+        let currentUser = localStorage.getItem('notes_club_user_v5') || "";
         
         let isPublicNote = false;
         let currentFeedChannel = "my";
         let database = [];
-
-        // 1. ПРИНУДИТЕЛЬНОЕ ОЧИЩЕНИЕ ВСЕХ СТАРЫХ ЗАПИСЕЙ СЕЙЧАС (И личных, и публичных)
-        localStorage.removeItem('notes_club_db');
-        localStorage.removeItem('notes_club_db_v2');
-        localStorage.removeItem('notes_club_db_v3');
-        localStorage.setItem('notes_club_db_v4', JSON.stringify([]));
 
         // Проверка сессии входа
         if (currentUser) {
@@ -236,26 +224,25 @@
             if (!user || !pass) return;
             
             currentUser = user;
-            localStorage.setItem('notes_club_user_v4', user);
+            localStorage.setItem('notes_club_user_v5', user);
             document.getElementById('auth-screen').style.opacity = '0';
             setTimeout(() => { document.getElementById('auth-screen').style.display = 'none'; }, 500);
             
             startGenerativeEngine();
         }
 
-        // 2. ВЫСОКОТЕХНОЛОГИЧНЫЙ АЛГОРИТМИЧЕСКИЙ СИНТЕЗАТОР ЭМБИЕНТА
-        let trackId = 1;
+        // ВЫСОКОТЕХНОЛОГИЧНЫЙ АЛГОРИТМИЧЕСКИЙ СИНТЕЗАТОР БЕЗ ШУМА
+        let trackId = 0;
         let trackInterval = null;
         let layersInterval = null;
         let masterGain = null;
         let masterFilter = null;
         let delayNode = null;
 
-        // Наборы ностальгических лоу-фай тональностей (смена каждые 2 минуты)
         const scalePresets = [
-            { name: "Track Alpha: Solitude", root: 55.00, chord: [1, 1.2, 1.5, 1.8], melody: [220, 261.63, 329.63, 392.00] },
-            { name: "Track Beta: Nostalgia", root: 65.41, chord: [1, 1.25, 1.33, 1.5], melody: [261.63, 311.13, 349.23, 415.30] },
-            { name: "Track Gamma: Snowfall", root: 48.99, chord: [1, 1.18, 1.4, 1.6], melody: [196.00, 246.94, 293.66, 369.99] }
+            { root: 55.00, chord: [1, 1.2, 1.5, 1.8], melody: [220, 261.63, 329.63, 392.00] },
+            { root: 65.41, chord: [1, 1.25, 1.33, 1.5], melody: [261.63, 311.13, 349.23, 415.30] },
+            { root: 48.99, chord: [1, 1.18, 1.4, 1.6], melody: [196.00, 246.94, 293.66, 369.99] }
         ];
         let activeScale = scalePresets[0];
 
@@ -264,19 +251,18 @@
             
             audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             
-            // Мастер-секция эффектов
             masterGain = audioCtx.createGain();
-            masterGain.gain.setValueAtTime(0.28, audioCtx.currentTime); // Плотный высокий уровень звука
+            masterGain.gain.setValueAtTime(0.35, audioCtx.currentTime); // Плотный и отчетливый уровень громкости
             
             masterFilter = audioCtx.createBiquadFilter();
             masterFilter.type = 'lowpass';
-            masterFilter.frequency.setValueAtTime(240, audioCtx.currentTime); // Глубокий матовый лоу-пасс срез
+            masterFilter.frequency.setValueAtTime(250, audioCtx.currentTime); // Матовый глубокий срез
             
             delayNode = audioCtx.createDelay(3.0);
-            delayNode.delayTime.setValueAtTime(0.75, audioCtx.currentTime);
+            delayNode.delayTime.setValueAtTime(0.8, audioCtx.currentTime);
             
             let delayFeedback = audioCtx.createGain();
-            delayFeedback.gain.setValueAtTime(0.55, audioCtx.currentTime); // Объемное эхо-зацикливание
+            delayFeedback.gain.setValueAtTime(0.58, audioCtx.currentTime); // Бесконечные объемные хвосты эха
 
             masterGain.connect(masterFilter);
             masterFilter.connect(audioCtx.destination);
@@ -285,48 +271,21 @@
             delayNode.connect(delayFeedback);
             delayFeedback.connect(masterFilter);
 
-            // Полноценный генератор текстурного аналогового кассетного шума
-            function initTapeNoise() {
-                let bufferSize = 2 * audioCtx.sampleRate,
-                    buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate),
-                    data = buffer.getChannelData(0);
-                for (let i = 0; i < bufferSize; i++) { data[i] = Math.random() * 2 - 1; }
-                let source = audioCtx.createBufferSource();
-                source.buffer = buffer;
-                source.loop = true;
-
-                let noiseFilter = audioCtx.createBiquadFilter();
-                noiseFilter.type = 'bandpass';
-                noiseFilter.frequency.setValueAtTime(420, audioCtx.currentTime);
-
-                let noiseGain = audioCtx.createGain();
-                noiseGain.gain.setValueAtTime(0.015, audioCtx.currentTime); // Теплый хруст ленты
-
-                source.connect(noiseFilter);
-                noiseFilter.connect(noiseGain);
-                noiseGain.connect(audioCtx.destination);
-                source.start();
-            }
-            initTapeNoise();
-
-            // Функция динамической перестройки слоев (Каждые 40 секунд)
             function mutateAudioLayers() {
                 const now = audioCtx.currentTime;
-                document.getElementById('track-display').innerText = `${activeScale.name} · Evolution`;
 
-                // Синтез глубоких фоновых подкладов (Pads)
-                activeScale.chord.forEach((multiplier, index) => {
+                // 1. Медленные фоновые лоу-фай пады (Pads) на triangle волнах
+                activeScale.chord.forEach((multiplier) => {
                     let osc = audioCtx.createOscillator();
                     let gain = audioCtx.createGain();
                     
-                    osc.type = 'triangle'; // Лоу-фай мягкий тон
+                    osc.type = 'triangle'; 
                     let flutter = (Math.random() * 2 - 1) * 0.4;
                     osc.frequency.setValueAtTime((activeScale.root * multiplier) + flutter, now);
                     
-                    // Плавное дыхание звука: атака 3 секунды, удержание, медленный релиз
                     gain.gain.setValueAtTime(0, now);
-                    gain.gain.linearRampToValueAtTime(0.2, now + 3.0);
-                    gain.gain.exponentialRampToValueAtTime(0.0001, now + 38.0);
+                    gain.gain.linearRampToValueAtTime(0.25, now + 3.5); // Медленная плавная атака пэда
+                    gain.gain.exponentialRampToValueAtTime(0.0001, now + 38.5); // Мягкий плавный уход
                     
                     osc.connect(gain);
                     gain.connect(masterGain);
@@ -334,9 +293,9 @@
                     osc.stop(now + 39.0);
                 });
 
-                // Генерация случайных капель меланхоличной мелодии на верхнем плане
+                // 2. Случайные редкие ностальгические капли мелодии на sine волнах
                 for (let i = 0; i < 6; i++) {
-                    let timeOffset = i * (4 + Math.random() * 2);
+                    let timeOffset = i * (4 + Math.random() * 2.5);
                     let randomFreq = activeScale.melody[Math.floor(Math.random() * activeScale.melody.length)];
                     
                     let sineOsc = audioCtx.createOscillator();
@@ -346,7 +305,7 @@
                     sineOsc.frequency.setValueAtTime(randomFreq, now + timeOffset);
                     
                     sineGain.gain.setValueAtTime(0, now + timeOffset);
-                    sineGain.gain.linearRampToValueAtTime(0.08, now + timeOffset + 0.8);
+                    sineGain.gain.linearRampToValueAtTime(0.09, now + timeOffset + 0.8);
                     sineGain.gain.exponentialRampToValueAtTime(0.0001, now + timeOffset + 3.5);
                     
                     sineOsc.connect(sineGain);
@@ -355,22 +314,20 @@
                     sineOsc.stop(now + timeOffset + 4.0);
                 }
 
-                // Случайная фоновая тишина (Микро-затухание фильтра на слое)
-                let filterTarget = 180 + (Math.random() * 140);
+                // Интерактивное медленное блуждание частоты среза фильтра
+                let filterTarget = 190 + (Math.random() * 120);
                 masterFilter.frequency.setTargetAtTime(filterTarget, now, 4);
             }
 
-            // Функция полной смены музыкального трека (Каждые 2 минуты)
             function cycleFullTrack() {
                 trackId = (trackId + 1) % scalePresets.length;
                 activeScale = scalePresets[trackId];
-                // Мгновенно вызываем перестройку слоев под новую тональность
                 mutateAudioLayers();
             }
 
             mutateAudioLayers();
-            layersInterval = setInterval(mutateAudioLayers, 40000); // Эволюция каждые 40 сек
-            trackInterval = setInterval(cycleFullTrack, 120000);    // Смена трека каждые 2 мин
+            layersInterval = setInterval(mutateAudioLayers, 40000); 
+            trackInterval = setInterval(cycleFullTrack, 120000);    
             
             isMusicRunning = true;
         }
@@ -427,10 +384,10 @@
                 time: timeStamp
             };
 
-            let currentDb = JSON.parse(localStorage.getItem('notes_club_db_v4')) || [];
+            let currentDb = JSON.parse(localStorage.getItem('notes_club_db_v5')) || [];
             currentDb.unshift(newNote);
             database = currentDb;
-            localStorage.setItem('notes_club_db_v4', JSON.stringify(database));
+            localStorage.setItem('notes_club_db_v5', JSON.stringify(database));
             
             hField.value = "";
             bField.value = "";
@@ -484,10 +441,10 @@
 
         function deleteNote(id, event) {
             event.stopPropagation();
-            let currentDb = JSON.parse(localStorage.getItem('notes_club_db_v4')) || [];
+            let currentDb = JSON.parse(localStorage.getItem('notes_club_db_v5')) || [];
             currentDb = currentDb.filter(note => note.id !== id);
             database = currentDb;
-            localStorage.setItem('notes_club_db_v4', JSON.stringify(database));
+            localStorage.setItem('notes_club_db_v5', JSON.stringify(database));
             renderNotesList(document.getElementById('search-input').value);
         }
 
@@ -502,8 +459,7 @@
             document.getElementById('viewer-modal').style.display = 'none';
         }
 
-        // Стартовая прорисовка (база пустая)
-        database = JSON.parse(localStorage.getItem('notes_club_db_v4')) || [];
+        database = JSON.parse(localStorage.getItem('notes_club_db_v5')) || [];
         renderNotesList();
     </script>
 
