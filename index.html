@@ -30,7 +30,7 @@
             100% { background-position: 0% 50%; }
         }
 
-        /* ЭКРАН ВХОДА (ОКНО АВТОРИЗАЦИИ) */
+        /* ЭКРАН ВХОДА */
         .auth-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: #000000; z-index: 1000;
@@ -44,7 +44,7 @@
             text-align: center; box-shadow: 0 30px 60px rgba(0,0,0,0.8);
         }
         .auth-box h2 { color: #fff; font-size: 24px; margin-bottom: 8px; font-weight: 700; letter-spacing: -0.5px; }
-        .auth-box p { color: rgba(255,255,255,0.3); font-size: 13px; margin-bottom: 24px; }
+        .auth-box p { color: rgba(255, 255, 255, 0.25); font-size: 13px; margin-bottom: 24px; }
 
         /* ГЛАВНЫЙ КОНТЕЙНЕР ПРИЛОЖЕНИЯ */
         .glass-container {
@@ -68,7 +68,7 @@
         }
         .tab-btn.active { background: rgba(255,255,255,0.07); color: #ffffff; }
 
-        /* ВНУТРЕННИЙ ПОДТУЛБАР ДЛЯ ЛЕНТЫ (Мои / Рекомендации) */
+        /* ТУЛБАР ЛЕНТЫ (Мои заметки / Рекомендации) */
         .sub-bar { display: flex; gap: 8px; margin-bottom: 16px; }
         .sub-tab-btn {
             flex: 1; padding: 10px; background: rgba(255,255,255,0.015);
@@ -78,7 +78,7 @@
         }
         .sub-tab-btn.active { background: rgba(255,255,255,0.06); color: #fff; border-color: rgba(255,255,255,0.1); }
 
-        /* ИНПУТЫ И ЭЛЕМЕНТЫ УПРАВЛЕНИЯ */
+        /* ИНПУТЫ */
         .glass-input {
             width: 100%; padding: 15px 16px; background: rgba(255, 255, 255, 0.015);
             border: 1px solid rgba(255, 255, 255, 0.03); border-radius: 14px;
@@ -88,15 +88,16 @@
         .glass-input:focus { background: rgba(255, 255, 255, 0.03); border-color: rgba(255,255,255,0.1); }
         .textarea-input { flex: 1; min-height: 160px; resize: none; margin-bottom: 16px; }
 
-        /* ПЕРЕКЛЮЧАТЕЛЬ ПУБЛИЧНОСТИ (Приватная / Публичная) */
+        /* СЕЛЕКТОР ПРИВАТНОСТИ */
         .privacy-selector { display: flex; gap: 8px; margin-bottom: 16px; }
         .privacy-btn {
             flex: 1; padding: 12px; background: rgba(255,255,255,0.015);
             border: 1px solid rgba(255,255,255,0.03); border-radius: 12px;
             color: rgba(255,255,255,0.3); font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s;
         }
-        .privacy-btn.active { background: rgba(255,255,255,0.06); color: #ffffff; border-color: rgba(255,255,255,0.1); }
+        .privacy-btn.active { background: rgba(255, 255, 255, 0.06); color: #ffffff; border-color: rgba(255,255,255,0.1); }
 
+        /* БЕЛАЯ КНОПКА APPLE */
         .main-btn {
             width: 100%; padding: 16px; background: #ffffff; border: none;
             border-radius: 14px; color: #000000; font-size: 15px; font-weight: 700;
@@ -104,71 +105,72 @@
         }
         .main-btn:active { transform: scale(0.97); opacity: 0.9; }
 
-        /* СИСТЕМА ОКОН И СПИСКОВ */
+        /* СИСТЕМА ОКОН */
         .screen { display: none; flex-direction: column; flex: 1; min-height: 0; }
         .screen.active { display: flex; }
         .notes-list { flex: 1; overflow-y: auto; padding-right: 2px; scroll-behavior: smooth; }
         .notes-list::-webkit-scrollbar { width: 0px; }
 
-        /* ПРЕМИАЛЬНАЯ КАРТОЧКА МЫСЛИ */
+        /* КАРТОЧКА МЫСЛИ */
         .note-item {
-            background: rgba(255, 255, 255, 0.01); border: 1px solid rgba(255, 255, 255, 0.02);
+            background: rgba(255, 255, 255, 0.01) !important; border: 1px solid rgba(255, 255, 255, 0.02) !important;
             padding: 16px; border-radius: 16px; color: #ffffff; margin-bottom: 12px;
             position: relative; animation: appleSpawn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-            transition: all 0.2s ease; cursor: pointer;
+            transition: all 0.2s ease; cursor: pointer; display: block; text-decoration: none;
         }
-        .note-item:hover { background: rgba(255, 255, 255, 0.015); border-color: rgba(255,255,255,0.04); }
+        .note-item:hover { background: rgba(255, 255, 255, 0.02) !important; border-color: rgba(255,255,255,0.05) !important; }
         @keyframes appleSpawn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
 
-        .note-title { font-weight: 600; font-size: 15.5px; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; }
+        .note-title { font-weight: 600; font-size: 15.5px; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; color: #ffffff; }
         .note-desc { font-size: 13.5px; color: rgba(255, 255, 255, 0.45); word-break: break-word; line-height: 1.45; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
         .note-meta { font-size: 10px; color: rgba(255,255,255,0.15); margin-top: 12px; display: flex; justify-content: space-between; align-items: center; }
-        .note-author { font-weight: 600; color: rgba(255,255,255,0.3); }
+        .note-author { font-weight: 600; color: rgba(255, 255, 255, 0.35); text-transform: lowercase; }
 
-        .action-del { cursor: pointer; color: rgba(255,255,255,0.15); font-size: 11px; background: none; border: none; outline: none; }
+        .action-del { cursor: pointer; color: rgba(255,255,255,0.15); font-size: 11px; background: none; border: none; outline: none; padding: 4px; position: relative; z-index: 10; }
         .action-del:hover { color: #ff453a; }
 
-        /* ПОЛНОЭКРАННОЕ МОДАЛЬНОЕ ОКНО ДЛЯ ПРОСМОТРА ЗАМЕТКИ */
+        /* ПОЛНОЭКРАННЫЙ ПРОСМОТР ЗАМЕТКИ */
         .viewer-modal {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: #09090b; border-radius: 28px; padding: 24px;
-            display: none; flex-direction: column; z-index: 50; animation: modalFade 0.25s ease;
+            background: #050506; border-radius: 28px; padding: 24px;
+            display: none; flex-direction: column; z-index: 500; animation: modalFade 0.25s ease;
         }
         @keyframes modalFade { from { opacity: 0; transform: scale(0.98); } to { opacity: 1; transform: scale(1); } }
         .viewer-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
-        .viewer-close { background: none; border: none; color: #fff; font-size: 20px; cursor: pointer; opacity: 0.5; }
+        .viewer-close { background: none; border: none; color: #fff; font-size: 20px; cursor: pointer; opacity: 0.5; transition: opacity 0.2s; }
         .viewer-close:hover { opacity: 1; }
-        .viewer-title { color: #fff; font-size: 22px; font-weight: 700; margin-bottom: 12px; }
-        .viewer-author { font-size: 12px; color: rgba(255,255,255,0.3); margin-bottom: 16px; font-weight: 600; }
-        .viewer-body { color: rgba(255,255,255,0.7); font-size: 15px; line-height: 1.6; overflow-y: auto; flex: 1; word-break: break-word; }
+        .viewer-title { color: #fff; font-size: 22px; font-weight: 700; margin-bottom: 8px; letter-spacing: -0.5px; }
+        .viewer-author { font-size: 12px; color: rgba(255,255,255,0.35); margin-bottom: 20px; font-weight: 600; text-transform: lowercase; }
+        .viewer-body { color: rgba(255,255,255,0.7); font-size: 15px; line-height: 1.6; overflow-y: auto; flex: 1; word-break: break-word; padding-right: 4px; }
+        .viewer-body::-webkit-scrollbar { width: 0px; }
     </style>
 </head>
 <body>
 
-    <!-- ОКНО РЕГИСТРАЦИИ / ВХОДА -->
+    <!-- ОКНО РЕГИСТРАЦИИ -->
     <div class="auth-screen" id="auth-screen">
         <div class="auth-box">
             <h2>Notes club</h2>
             <p>Вход в пространство мыслей</p>
             <input type="text" id="auth-username" class="glass-input" placeholder="Ваше имя...">
             <input type="password" id="auth-password" class="glass-input" placeholder="Пароль...">
-            <button class="main-btn" onclick="handleLogin()">Войти изящно</button>
+            <button class="main-btn" onclick="handleLogin()">Создать себя</button>
         </div>
     </div>
 
-    <!-- ОСНОВНОЙ МОДУЛЬ ПРИЛОЖЕНИЯ -->
+    <!-- ОСНОВНОЙ МОДУЛЬ -->
     <div class="glass-container">
-        <!-- Детальный просмотр заметки -->
+        <!-- Полноэкранный просмотр карточки -->
         <div class="viewer-modal" id="viewer-modal">
             <div class="viewer-header">
-                <div class="viewer-author" id="v-author">Автор: @user</div>
+                <div class="viewer-author" id="v-author">автор: @user</div>
                 <button class="viewer-close" onclick="closeNoteViewer()">✕</button>
             </div>
             <div class="viewer-title" id="v-title">Название мысли</div>
             <div class="viewer-body" id="v-body">Полный текст...</div>
         </div>
 
-        <!-- Шапка верхнего уровня -->
+        <!-- Шапка -->
         <div class="top-bar">
             <div class="logo">Notes club</div>
             <div class="tabs">
@@ -177,7 +179,7 @@
             </div>
         </div>
 
-        <!-- СЦЕНА 1: НАПИСАТЬ ЗАПИСЬ -->
+        <!-- ОКНО 1: ПИСАТЬ -->
         <div id="screen-write" class="screen active">
             <input type="text" id="note-heading" class="glass-input" placeholder="Название мысли...">
             <textarea id="note-text" class="glass-input textarea-input" placeholder="Начните писать здесь..."></textarea>
@@ -190,9 +192,8 @@
             <button class="main-btn" onclick="publishNote()">Поделиться мыслью</button>
         </div>
 
-        <!-- СЦЕНА 2: ЛЕНТА МЫСЛЕЙ (ДВУХКАНАЛЬНАЯ С ПОИСКОМ) -->
+        <!-- ОКНО 2: ЛЕНТА -->
         <div id="screen-list" class="screen">
-            <!-- Кнопки "Мои заметки" и "Рекомендации" -->
             <div class="sub-bar">
                 <button class="sub-tab-btn active" id="sub-tab-my" onclick="setFeedChannel('my')">Мои заметки</button>
                 <button class="sub-tab-btn" id="sub-tab-feed" onclick="setFeedChannel('feed')">Рекомендации</button>
@@ -206,29 +207,26 @@
         </div>
     </div>
 
-    <!-- СКРИПТОВЫЙ ЯДЕРНЫЙ ИНЖЕКТОР (ЧИСТЫЙ JS) -->
     <script>
         let audioCtx = null;
         let isMusicRunning = false;
-        let currentUser = localStorage.getItem('notes_club_user') || "";
+        let currentUser = localStorage.getItem('notes_club_user_v3') || "";
         
-        // Системные переменные логики данных
         let isPublicNote = false;
-        let currentFeedChannel = "my"; // 'my' или 'feed'
+        let currentFeedChannel = "my";
 
-        // 1. ИСПРАВЛЕННЫЙ БАГ ХРАНИЛИЩА (Чтение базы без затирания) [1]
-        let database = JSON.parse(localStorage.getItem('notes_club_db_v2'));
+        // Системная база данных (Полноценное чтение кэша)
+        let database = JSON.parse(localStorage.getItem('notes_club_db_v3'));
         if (!database || !Array.isArray(database)) {
-            // Демо-данные рекомендаций от других авторов, чтобы лента не была пустой
             database = [
                 { id: 1, title: "Эстетика осени", body: "Капли дождя бьют по стеклу окон кофейни, растворяясь в неоновом свете вечернего города. В такие моменты хочется просто молчать.", author: "Arseny", privacy: "public", time: "18:24 · 19.05" },
                 { id: 2, title: "Звуки тишины", body: "Эмбиент-музыка Oneheart помогает сфокусироваться на внутреннем мире. Ностальгия — это не грусть, это память о прекрасном.", author: "Sofia_Ambient", privacy: "public", time: "12:05 · 18.05" },
                 { id: 3, title: "Утренний Токио", body: "Пустые улицы, туман над линиями метро и едва заметный розоватый рассвет. Город еще спит, сохраняя свои тайны.", author: "Neon_Dreamer", privacy: "public", time: "05:11 · 15.05" }
             ];
-            localStorage.setItem('notes_club_db_v2', JSON.stringify(database));
+            localStorage.setItem('notes_club_db_v3', JSON.stringify(database));
         }
 
-        // Проверка авторизации на старте
+        // Проверка сессии (Запоминание пользователя навсегда)
         if (currentUser) {
             document.getElementById('auth-screen').style.display = 'none';
         }
@@ -239,38 +237,35 @@
             if (!user || !pass) return;
             
             currentUser = user;
-            localStorage.setItem('notes_club_user', user);
+            localStorage.setItem('notes_club_user_v3', user); // Сохраняем имя автора навсегда
             document.getElementById('auth-screen').style.opacity = '0';
             setTimeout(() => { document.getElementById('auth-screen').style.display = 'none'; }, 500);
             
-            // Триггер запуска звука при логине
             startOneheartAmbient();
         }
 
-        // 2. ИСТИННЫЙ СИНТЕЗАТОР ONEHEART NOSTALGIA С ТРЕУГОЛЬНЫМИ ВОЛНАМИ [1]
+        // ГЛУБОКИЙ ГЕНЕРАТИВНЫЙ СИНТЕЗАТОР ONEHEART
         function startOneheartAmbient() {
             if (isMusicRunning) return;
             
             audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             
-            // Глубокий аналоговый срез (Лоу-пасс на 260 Гц для глухоты и бархатистости)
             let masterFilter = audioCtx.createBiquadFilter();
             masterFilter.type = 'lowpass';
-            masterFilter.frequency.setValueAtTime(260, audioCtx.currentTime);
+            masterFilter.frequency.setValueAtTime(250, audioCtx.currentTime); // Очень глухой, бархатный лоу-пасс
             masterFilter.connect(audioCtx.destination);
 
-            // Реверберационный Delay-эффект объемных хвостов эха
             let delayNode = audioCtx.createDelay(3.0);
             delayNode.delayTime.setValueAtTime(0.8, audioCtx.currentTime);
             
             let delayGain = audioCtx.createGain();
-            delayGain.gain.setValueAtTime(0.5, audioCtx.currentTime); // Хвосты эха длиннее и громче
+            delayGain.gain.setValueAtTime(0.55, audioCtx.currentTime); // Хвосты пространственного эхо
             
             masterFilter.connect(delayNode);
             delayNode.connect(delayGain);
             delayGain.connect(masterFilter);
 
-            // Полноценный генератор аналогового шума ленты
+            // Текстура шума и тепла ленты
             function initTapeHiss() {
                 let bufferSize = 2 * audioCtx.sampleRate,
                     noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate),
@@ -282,10 +277,10 @@
 
                 let hissFilter = audioCtx.createBiquadFilter();
                 hissFilter.type = 'bandpass';
-                hissFilter.frequency.setValueAtTime(500, audioCtx.currentTime);
+                hissFilter.frequency.setValueAtTime(450, audioCtx.currentTime);
 
                 let hissGain = audioCtx.createGain();
-                hissGain.gain.setValueAtTime(0.012, audioCtx.currentTime);
+                hissGain.gain.setValueAtTime(0.014, audioCtx.currentTime);
 
                 hissSource.connect(hissFilter);
                 hissFilter.connect(hissGain);
@@ -294,10 +289,9 @@
             }
             initTapeHiss();
 
-            // Знаменитые ностальгические минорные палитры Oneheart
             const chords = [
-                [55.00, 110.00, 146.83, 164.81], // Основной аккорд грусти
-                [65.41, 130.81, 174.61, 196.00]  // Растворение в тумане
+                [55.00, 110.00, 146.83, 164.81], // Идеальные минорные волны одиночества
+                [65.41, 130.81, 174.61, 196.00]
             ];
 
             function runNostalgiaWave() {
@@ -306,17 +300,14 @@
                     let osc = audioCtx.createOscillator();
                     let gainNode = audioCtx.createGain();
                     
-                    // Треугольная волна даёт мягкий Lo-Fi Pad тон [1]
                     osc.type = 'triangle';
                     
-                    // Имитация детонации магнитофонной ленты (Tape Flutter)
-                    let tapeDrift = (Math.random() * 2 - 1) * 0.35;
+                    let tapeDrift = (Math.random() * 2 - 1) * 0.38;
                     osc.frequency.setValueAtTime(freq + tapeDrift, audioCtx.currentTime);
                     
-                    // ГРОМКОСТЬ ВЫКРУЧЕНА НА МАКСИМУМ (0.22)
                     gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
-                    gainNode.gain.linearRampToValueAtTime(0.22, audioCtx.currentTime + 2.5); // Медленная атака пэда
-                    gainNode.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 5.8);
+                    gainNode.gain.linearRampToValueAtTime(0.24, audioCtx.currentTime + 2.5); // Нарастание
+                    gainNode.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 5.8); // Затухание
                     
                     osc.connect(gainNode);
                     gainNode.connect(masterFilter);
@@ -326,7 +317,7 @@
             }
 
             runNostalgiaWave();
-            setInterval(runNostalgiaWave, 5500); // Плавная смена волн
+            setInterval(runNostalgiaWave, 5500);
             isMusicRunning = true;
         }
 
@@ -347,14 +338,12 @@
             }
         }
 
-        // Выбор приватности перед отправкой мысли
         function setPrivacy(isPublic) {
             isPublicNote = isPublic;
             document.getElementById('p-btn-private').classList.toggle('active', !isPublic);
             document.getElementById('p-btn-public').classList.toggle('active', isPublic);
         }
 
-        // Переключение каналов Ленты (Мои / Рекомендации)
         function setFeedChannel(channel) {
             currentFeedChannel = channel;
             document.getElementById('sub-tab-my').classList.toggle('active', channel === 'my');
@@ -362,7 +351,7 @@
             renderNotesList();
         }
 
-        // 3. ДОБАВЛЕНИЕ МЫСЛИ БЕЗ УДАЛЕНИЯ СТАРЫХ
+        // ПУБЛИКАЦИЯ ЗАПИСИ (ИСПРАВЛЕНО ДУБЛИРОВАНИЕ)
         function publishNote() {
             const hField = document.getElementById('note-heading');
             const bField = document.getElementById('note-text');
@@ -375,51 +364,52 @@
             const timeStamp = new Date().toLocaleTimeString('ru-RU', {hour: '2-digit', minute:'2-digit'}) + ' · ' + new Date().toLocaleDateString('ru-RU', {day: '2-digit', month: '2-digit'});
 
             const newNote = {
-                id: Date.now(), // Уникальный ключ id
+                id: Date.now(),
                 title: heading,
                 body: bField.value.trim(),
-                author: currentUser || "Аноним",
+                author: currentUser || "аноним",
                 privacy: isPublicNote ? "public" : "private",
                 time: timeStamp
             };
 
-            // Читаем свежую базу, добавляем элемент в начало массива, перезаписываем
-            let currentDb = JSON.parse(localStorage.getItem('notes_club_db_v2')) || [];
+            let currentDb = JSON.parse(localStorage.getItem('notes_club_db_v3')) || [];
             currentDb.unshift(newNote);
             database = currentDb;
-            localStorage.setItem('notes_club_db_v2', JSON.stringify(database));
+            localStorage.setItem('notes_club_db_v3', JSON.stringify(database));
             
             hField.value = "";
             bField.value = "";
             
-            setFeedChannel('my'); // Сразу перекидываем в Мои Заметки
+            setFeedChannel('my'); // Перенаправляем на Мои Заметки
             switchScreen('list');
         }
 
-        // 4. УМНАЯ ОТРИСОВКА И ТЕЛЕГРАМ-ПОИСК ПО НАЗВАНИЮ
+        // ОТРИСОВКА КАРТОЧЕК С ВЫВОДОМ ИМЕНИ АВТОРА
         function renderNotesList(filterQuery = "") {
             const container = document.getElementById('notes-container');
             container.innerHTML = "";
 
             database.forEach((note) => {
-                // Живой поиск по названию (заголовку)
                 if (filterQuery && !note.title.toLowerCase().includes(filterQuery.toLowerCase())) return;
 
-                // Разделение на каналы:
+                // УСЛОВИЕ РАЗДЕЛЕНИЯ ЛЕНТ
                 if (currentFeedChannel === 'my') {
-                    // Вкладка "Мои": только те, у кого совпадает имя автора
+                    // Вкладка "Мои заметки": показывает абсолютно ВСЕ твои записи (и личные, и публичные)
                     if (note.author !== currentUser) return;
                 } else {
-                    // Вкладка "Рекомендации": только публичные мысли других пользователей
-                    if (note.privacy !== 'public' || note.author === currentUser) return;
+                    // Вкладка "Рекомендации": показывает ВСЕ публичные записи (включая и твои собственные публичные мысли тоже!)
+                    if (note.privacy !== 'public') return;
                 }
 
                 const card = document.createElement('div');
                 card.classList.add('note-item');
-                // Клик по карточке открывает её на весь экран
-                card.setAttribute('onclick', `openNoteViewer(${JSON.stringify(note).replace(/"/g, '&quot;')})`);
                 
-                // Кнопка удаления видна только на собственных заметках автора
+                // Исправлен баг клика по тексту: передаем безопасный вызов модалки
+                card.addEventListener('click', (e) => {
+                    if (e.target.classList.contains('action-del')) return;
+                    openNoteViewer(note);
+                });
+                
                 const deleteBtn = note.author === currentUser ? `<button class="action-del" onclick="deleteNote(${note.id}, event)">✕</button>` : '';
 
                 card.innerHTML = `
@@ -429,7 +419,7 @@
                     </div>
                     <div class="note-desc">${note.body}</div>
                     <div class="note-meta">
-                        <span class="note-author">@${note.author} ${note.privacy === 'private' ? '🔒' : ''}</span>
+                        <span class="note-author">@${note.author} ${note.privacy === 'private' ? '🔒' : '🌍'}</span>
                         <span>${note.time}</span>
                     </div>
                 `;
@@ -441,19 +431,18 @@
             renderNotesList(document.getElementById('search-input').value);
         }
 
-        // Точечное удаление по уникальному ID
         function deleteNote(id, event) {
             event.stopPropagation();
-            let currentDb = JSON.parse(localStorage.getItem('notes_club_db_v2')) || [];
+            let currentDb = JSON.parse(localStorage.getItem('notes_club_db_v3')) || [];
             currentDb = currentDb.filter(note => note.id !== id);
             database = currentDb;
-            localStorage.setItem('notes_club_db_v2', JSON.stringify(database));
+            localStorage.setItem('notes_club_db_v3', JSON.stringify(database));
             renderNotesList(document.getElementById('search-input').value);
         }
 
-        // 5. ПОЛНОЭКРАННЫЙ СТЕКЛЯННЫЙ ПРОСМОТР СОДЕРЖИМОГО ЗАМЕТКИ
+        // ОТКРЫТИЕ ПОЛНОГО ТЕКСТА КАРТОЧКИ
         function openNoteViewer(note) {
-            document.getElementById('v-author').innerText = `Автор: @${note.author}`;
+            document.getElementById('v-author').innerText = `автор: @${note.author}`;
             document.getElementById('v-title').innerText = note.title;
             document.getElementById('v-body').innerText = note.body;
             document.getElementById('viewer-modal').style.display = 'flex';
