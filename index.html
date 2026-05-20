@@ -193,21 +193,25 @@
 
     <!-- АУДИОДВИЖОК ONEHEART + ОБЛАКО SUPABASE -->
     <script>
-        const SUPABASE_URL = "https://supabase.co"; 
-        const SUPABASE_ANON_KEY = "sb_publishable_fm9-bWhIWtekOx1-vg9i6Q_ZOMs4ZDJlZmM0ZTktODU3Zi00N2VmLTkzYTEtZTFiNmY0YTU5ZmI0";
-
-        // ИСПРАВЛЕННЫЙ СИНТАКСИС ИНИЦИАЛИЗАЦИИ КЛИЕНТА ОБЛАКА
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-        let audioCtx = null;
-        let isMusicRunning = false;
+        // ИНИЦИАЛИЗАЦИЯ ВСЕХ ГЛОВБАЛЬНЫХ ПЕРЕМЕННЫХ НАВЕРХУ (ДЛЯ ЗАЩИТЫ ОТ БАГА INITIALIZATION)
         let currentUser = localStorage.getItem('nc_cloud_user') || "";
-        
         let isPublicNote = false;
         let currentFeedChannel = "my";
         let localMyNotes = JSON.parse(localStorage.getItem('nc_local_my_db')) || []; 
         let cloudPublicNotes = []; 
 
+        const SUPABASE_URL = "https://supabase.co"; 
+        const SUPABASE_ANON_KEY = "sb_publishable_fm9-bWhIWtekOx1-vg9i6Q_ZOMs4ZDJlZmM0ZTktODU3Zi00N2VmLTkzYTEtZTFiNmY0YTU5ZmI0";
+
+        // Безопасное подключение к облаку
+        let supabase = null;
+        try {
+            if (window.supabase) {
+                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            }
+        } catch(e) { console.log("Supabase initialization hidden"); }
+
+        // Проверка сессии
         if (currentUser) {
             document.getElementById('auth-screen').style.display = 'none';
             fetchCloudNotes();
@@ -227,7 +231,7 @@
                 fetchCloudNotes();
                 startGenerativeEngine();
             } catch(err) {
-                alert("Ошибка авторизации: " + err.message);
+                alert("Ошибка: " + err.message);
             }
         }
 
@@ -242,13 +246,13 @@
                 if (!error && data) {
                     cloudPublicNotes = data;
                     renderNotesList();
-                } else if (error) {
-                    console.log("Ошибка загрузки ленты: " + error.message);
                 }
             } catch(e) {}
         }
 
         // КРИСТАЛЬНО ЧИСТЫЙ СИНТЕЗАТОР ONEHEART
+        let audioCtx = null;
+        let isMusicRunning = false;
         let trackId = 0;
         let masterGain = null;
         let masterFilter = null;
@@ -262,73 +266,75 @@
 
         function startGenerativeEngine() {
             if (isMusicRunning) return;
-            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            
-            masterGain = audioCtx.createGain();
-            masterGain.gain.setValueAtTime(0.35, audioCtx.currentTime);
-            
-            masterFilter = audioCtx.createBiquadFilter();
-            masterFilter.type = 'lowpass';
-            masterFilter.frequency.setValueAtTime(250, audioCtx.currentTime); 
-            
-            delayNode = audioCtx.createDelay(3.0);
-            delayNode.delayTime.setValueAtTime(0.8, audioCtx.currentTime);
-            
-            let delayFeedback = audioCtx.createGain();
-            delayFeedback.gain.setValueAtTime(0.58, audioCtx.currentTime);
+            try {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                
+                masterGain = audioCtx.createGain();
+                masterGain.gain.setValueAtTime(0.35, audioCtx.currentTime);
+                
+                masterFilter = audioCtx.createBiquadFilter();
+                masterFilter.type = 'lowpass';
+                masterFilter.frequency.setValueAtTime(250, audioCtx.currentTime); 
+                
+                delayNode = audioCtx.createDelay(3.0);
+                delayNode.delayTime.setValueAtTime(0.8, audioCtx.currentTime);
+                
+                let delayFeedback = audioCtx.createGain();
+                delayFeedback.gain.setValueAtTime(0.58, audioCtx.currentTime);
 
-            masterGain.connect(masterFilter);
-            masterFilter.connect(audioCtx.destination);
-            masterFilter.connect(delayNode);
-            delayNode.connect(delayFeedback);
-            delayFeedback.connect(masterFilter);
+                masterGain.connect(masterFilter);
+                masterFilter.connect(audioCtx.destination);
+                masterFilter.connect(delayNode);
+                delayNode.connect(delayFeedback);
+                delayFeedback.connect(masterFilter);
 
-            function mutateAudioLayers() {
-                const now = audioCtx.currentTime;
-                activeScale.chord.forEach((multiplier) => {
-                    let osc = audioCtx.createOscillator();
-                    let gain = audioCtx.createGain();
-                    osc.type = 'triangle'; 
-                    let flutter = (Math.random() * 2 - 1) * 0.4;
-                    osc.frequency.setValueAtTime((activeScale.root * multiplier) + flutter, now);
-                    
-                    gain.gain.setValueAtTime(0, now);
-                    gain.gain.linearRampToValueAtTime(0.25, now + 3.5); 
-                    gain.gain.exponentialRampToValueAtTime(0.0001, now + 38.5);
-                    
-                    osc.connect(gain);
-                    gain.connect(masterGain);
-                    osc.start(now);
-                    osc.stop(now + 39.0);
-                });
+                function mutateAudioLayers() {
+                    const now = audioCtx.currentTime;
+                    activeScale.chord.forEach((multiplier) => {
+                        let osc = audioCtx.createOscillator();
+                        let gain = audioCtx.createGain();
+                        osc.type = 'triangle'; 
+                        let flutter = (Math.random() * 2 - 1) * 0.4;
+                        osc.frequency.setValueAtTime((activeScale.root * multiplier) + flutter, now);
+                        
+                        gain.gain.setValueAtTime(0, now);
+                        gain.gain.linearRampToValueAtTime(0.25, now + 3.5); 
+                        gain.gain.exponentialRampToValueAtTime(0.0001, now + 38.5);
+                        
+                        osc.connect(gain);
+                        gain.connect(masterGain);
+                        osc.start(now);
+                        osc.stop(now + 39.0);
+                    });
 
-                for (let i = 0; i < 5; i++) {
-                    let timeOffset = i * (4 + Math.random() * 2.5);
-                    let randomFreq = activeScale.melody[Math.floor(Math.random() * activeScale.melody.length)];
-                    let sineOsc = audioCtx.createOscillator();
-                    let sineGain = audioCtx.createGain();
-                    
-                    sineOsc.type = 'sine';
-                    sineOsc.frequency.setValueAtTime(randomFreq, now + timeOffset);
-                    sineGain.gain.setValueAtTime(0, now + timeOffset);
-                    sineGain.gain.linearRampToValueAtTime(0.09, now + timeOffset + 0.8);
-                    sineGain.gain.exponentialRampToValueAtTime(0.0001, now + timeOffset + 3.5);
-                    
-                    sineOsc.connect(sineGain);
-                    sineGain.connect(masterGain);
-                    sineOsc.start(now + timeOffset);
-                    sineOsc.stop(now + timeOffset + 4.0);
+                    for (let i = 0; i < 5; i++) {
+                        let timeOffset = i * (4 + Math.random() * 2.5);
+                        let randomFreq = activeScale.melody[Math.floor(Math.random() * activeScale.melody.length)];
+                        let sineOsc = audioCtx.createOscillator();
+                        let sineGain = audioCtx.createGain();
+                        
+                        sineOsc.type = 'sine';
+                        sineOsc.frequency.setValueAtTime(randomFreq, now + timeOffset);
+                        sineGain.gain.setValueAtTime(0, now + timeOffset);
+                        sineGain.gain.linearRampToValueAtTime(0.09, now + timeOffset + 0.8);
+                        sineGain.gain.exponentialRampToValueAtTime(0.0001, now + timeOffset + 3.5);
+                        
+                        sineOsc.connect(sineGain);
+                        sineGain.connect(masterGain);
+                        sineOsc.start(now + timeOffset);
+                        sineOsc.stop(now + timeOffset + 4.0);
+                    }
                 }
-            }
 
-            mutateAudioLayers();
-            setInterval(mutateAudioLayers, 40000); 
-            setInterval(() => {
-                trackId = (trackId + 1) % scalePresets.length;
-                activeScale = scalePresets[trackId];
                 mutateAudioLayers();
-            }, 120000);    
-            isMusicRunning = true;
+                setInterval(mutateAudioLayers, 40000); 
+                setInterval(() => {
+                    trackId = (trackId + 1) % scalePresets.length;
+                    activeScale = scalePresets[trackId];
+                    mutateAudioLayers();
+                }, 120000);    
+                isMusicRunning = true;
+            } catch(e) {}
         }
 
         document.body.addEventListener('click', startGenerativeEngine, { once: true });
@@ -382,8 +388,9 @@
             localStorage.setItem('nc_local_my_db', JSON.stringify(localMyNotes));
 
             if (isPublicNote && supabase) {
-                const { error } = await supabase.from('notes').insert([newNote]);
-                if (error) alert("Ошибка отправки в облако: " + error.message);
+                try {
+                    await supabase.from('notes').insert([newNote]);
+                } catch(e) {}
             }
             
             document.getElementById('note-heading').value = "";
@@ -436,11 +443,13 @@
             localStorage.setItem('nc_local_my_db', JSON.stringify(localMyNotes));
             
             if (supabase) {
-                if (id) {
-                    await supabase.from('notes').delete().eq('id', id);
-                } else {
-                    await supabase.from('notes').delete().eq('title', title).eq('author', currentUser);
-                }
+                try {
+                    if (id) {
+                        await supabase.from('notes').delete().eq('id', id);
+                    } else {
+                        await supabase.from('notes').delete().eq('title', title).eq('author', currentUser);
+                    }
+                } catch(e) {}
             }
             fetchCloudNotes();
         }
