@@ -3,408 +3,455 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GlassNotes Black & White</title>
+    <title>GlassNotes Obsidian Premium</title>
+    
+    <!-- Иконка и манифест для запуска на главном экране телефона как полноценное приложение -->
+    <link rel="apple-touch-icon" href="https://icons8.com">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIkdsYXNzTm90ZXMgT2JzaWRpYW4iLAogICJzaG9ydF9uYW1lIjogIkdsYXNzTm90ZXMiLAogICJzdGFydF91cmwiOiAiLiIsCiAgImRpc3BsYXkiOiAic3RhbmRhbG9uZSIsCiAgImJhY2tncm91bmRfY29sb3IiOiAiIzAwMDAwMCIsCiAgInRoZW1lX2NvbG9yIjogIiMwMDAwMDAiLAogICJpY29ucyI6IFsKICAgIHsKICAgICAgInNyYyI6ICJodHRwczovL2ltZy5pY29uczguY29tL2lvcy1maWxsZWQvNTAwL2ZmZmZmZi9tYWNib29rLWlkZWEucG5nIiwKICAgICAgInNpemVzIjogIjUwMHg1MDAiLAogICAgICAidHlwZSI6ICJpbWFnZS9wbmciCiAgICB9CiAgXQp9">
+
+    <!-- Среда Python -->
     <link rel="stylesheet" href="https://pyscript.net" />
     <script type="module" src="https://pyscript.net"></script>
     
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif; }
         
-        /* 1. МЕДЛЕННЫЙ МОНОХРОМНЫЙ ГРАДИЕНТ (Черный/Серый/Белый) */
+        /* УЛЬТРА-ТЕМНЫЙ ФОН: УГОЛЬНЫЙ ОБСИДИАН С МЕДЛЕННЫМ МАТОВЫМ МЕРЦАНИЕМ */
         body, html {
             height: 100%;
             overflow: hidden;
-            background: linear-gradient(135deg, #000000, #111111, #222222, #1a1a1a);
+            background: linear-gradient(135deg, #020202, #070708, #0d0d0f, #050506);
             background-size: 400% 400%;
-            animation: slowGradient 30s ease infinite;
+            animation: obsidianGradient 40s ease infinite;
             display: flex;
             justify-content: center;
             align-items: center;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
         }
 
-        @keyframes slowGradient {
+        @keyframes obsidianGradient {
             0% { background-position: 0% 50%; }
             50% { background-position: 100% 50%; }
             100% { background-position: 0% 50%; }
         }
 
-        /* ИСПРАВЛЕННЫЙ ИЗЯЩНЫЙ КОНТЕЙНЕР APPLE GLASS */
+        /* КОНТЕЙНЕР ОБСИДИАНОВОГО СТЕКЛА */
         .glass-container {
             width: 100%;
-            max-width: 420px;
-            height: 90vh;
-            max-height: 800px;
-            background: rgba(255, 255, 255, 0.03);
-            backdrop-filter: blur(30px);
-            -webkit-backdrop-filter: blur(30px);
-            border-radius: 24px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            max-width: 380px;
+            height: 85vh;
+            max-height: 760px;
+            background: rgba(10, 10, 12, 0.4);
+            backdrop-filter: blur(40px) saturate(200%);
+            -webkit-backdrop-filter: blur(40px) saturate(200%);
+            border-radius: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.04);
             padding: 24px;
             display: flex;
             flex-direction: column;
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
-            margin: 10px;
+            box-shadow: 0 40px 100px rgba(0, 0, 0, 0.95), inset 0 1px 1px rgba(255,255,255,0.02);
+            margin: 16px;
+            position: relative;
         }
 
-        /* ШАПКА */
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        h1 { color: #ffffff; font-size: 26px; font-weight: 600; letter-spacing: -0.5px; }
-        .stats { color: rgba(255, 255, 255, 0.4); font-size: 13px; }
+        /* ХЕДЕР С ЭСТЕТИКОЙ APPLE */
+        .header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 22px; }
+        h1 { color: #ffffff; font-size: 26px; font-weight: 700; letter-spacing: -0.8px; opacity: 0.95; }
+        .stats { color: rgba(255, 255, 255, 0.3); font-size: 11px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; }
 
-        /* СТРОКА ПОИСКА И ТЕГИ */
-        .search-box { position: relative; margin-bottom: 12px; }
-        
-        /* ТЕКСТОВЫЕ ПАНЕЛИ И КНОПКИ В СТИЛЕ APPLE */
+        /* ИНПУТЫ И КНОПКИ */
         .glass-input {
             width: 100%;
-            padding: 14px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 12px;
+            padding: 14px 16px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            border-radius: 14px;
             color: #ffffff;
             font-size: 15px;
             outline: none;
-            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+            margin-bottom: 10px;
         }
-        .glass-input::placeholder { color: rgba(255,255,255,0.3); }
-        .glass-input:focus { background: rgba(255, 255, 255, 0.09); border-color: rgba(255,255,255,0.3); }
+        .glass-input::placeholder { color: rgba(255,255,255,0.2); }
+        .glass-input:focus { background: rgba(255, 255, 255, 0.05); border-color: rgba(255,255,255,0.15); }
 
-        .textarea-input { min-height: 80px; max-height: 120px; resize: none; margin-bottom: 12px; }
+        .textarea-input { min-height: 70px; max-height: 95px; resize: none; }
 
-        /* ИНСТРУМЕНТЫ (ФУНКЦИОНАЛЬНЫЕ КНОПКИ) */
-        .toolbar { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 15px; }
+        /* ИНТЕРАКТИВНЫЙ ТУЛБАР */
+        .toolbar { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 14px; }
         .tool-btn {
-            padding: 10px 5px;
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid rgba(255, 255, 255, 0.06);
+            padding: 10px 4px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.04);
             border-radius: 10px;
-            color: rgba(255,255,255,0.7);
+            color: rgba(255,255,255,0.4);
             font-size: 11px;
-            cursor: pointer;
-            transition: all 0.2s;
-            text-align: center;
-        }
-        .tool-btn:hover, .tool-btn.active { background: rgba(255, 255, 255, 0.15); color: #fff; border-color: rgba(255,255,255,0.3); }
-
-        .main-btn {
-            width: 100%;
-            padding: 14px;
-            background: #ffffff;
-            border: none;
-            border-radius: 12px;
-            color: #000000;
-            font-size: 15px;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-            margin-bottom: 20px;
+            transition: all 0.2s ease;
+            text-align: center;
         }
-        .main-btn:active { transform: scale(0.97); opacity: 0.8; }
+        .tool-btn:hover { background: rgba(255, 255, 255, 0.06); color: #fff; }
+        .tool-btn.active { background: #ffffff; color: #000000; border-color: #ffffff; }
 
-        /* СПИСОК ЗАМЕТОК С СУПЕР-СКРОЛЛОМ */
-        .notes-list { flex: 1; overflow-y: auto; padding-right: 2px; }
-        .notes-list::-webkit-scrollbar { width: 3px; }
-        .notes-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+        /* ГЛАВНАЯ ЧИСТО-БЕЛАЯ КНОПКА ДОБАВЛЕНИЯ */
+        .main-btn {
+            width: 100%;
+            padding: 15px;
+            background: #ffffff;
+            border: none;
+            border-radius: 14px;
+            color: #000000;
+            font-size: 15px;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            margin-bottom: 16px;
+        }
+        .main-btn:active { transform: scale(0.96); opacity: 0.9; }
 
-        /* КАРТОЧКА ЗАМЕТКИ */
+        /* СПИСОК ЗАМЕТОК (СКРОЛЛ СКРЫТ) */
+        .notes-list { flex: 1; overflow-y: auto; padding-right: 2px; scroll-behavior: smooth; }
+        .notes-list::-webkit-scrollbar { width: 0px; }
+
+        /* КАРТОЧКА ЗАМЕТКИ С ЭФФЕКТОМ APPLE SPAWN */
         .note-item {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.06);
+            background: rgba(255, 255, 255, 0.01);
+            border: 1px solid rgba(255, 255, 255, 0.03);
             padding: 16px;
             border-radius: 16px;
             color: #ffffff;
-            margin-bottom: 12px;
-            position: relative;
+            margin-bottom: 10px;
             animation: appleSpawn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-            transition: all 0.3s;
+            transition: all 0.3s ease;
         }
-        .note-item.important { border-left: 4px solid #ffffff; background: rgba(255,255,255,0.06); }
-        .note-item.completed { opacity: 0.3; text-decoration: line-through; }
+        .note-item:hover { background: rgba(255, 255, 255, 0.03); border-color: rgba(255,255,255,0.08); }
+        
+        /* Стили модификаторов */
+        .note-item.important { border-left: 3px solid #ffffff; background: rgba(255,255,255,0.02); }
+        .note-item.completed { opacity: 0.2; text-decoration: line-through; transform: scale(0.98); }
+        .note-item.secured { filter: blur(5px); opacity: 0.2; }
 
-        @keyframes appleSpawn { from { opacity: 0; transform: translateY(12px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
+        @keyframes appleSpawn { 
+            from { opacity: 0; transform: translateY(14px) scale(0.97); filter: blur(4px); } 
+            to { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); } 
+        }
 
-        .note-title { font-weight: 600; font-size: 15px; margin-bottom: 4px; display: flex; justify-content: space-between; }
-        .note-desc { font-size: 13px; color: rgba(255, 255, 255, 0.6); word-break: break-word; line-height: 1.4; }
-        .note-meta { font-size: 10px; color: rgba(255,255,255,0.3); margin-top: 10px; display: flex; justify-content: space-between; align-items: center; }
+        .note-title { font-weight: 600; font-size: 15px; margin-bottom: 4px; display: flex; justify-content: space-between; align-items: center; }
+        .note-desc { font-size: 13px; color: rgba(255, 255, 255, 0.5); word-break: break-word; line-height: 1.45; }
+        .note-meta { font-size: 10px; color: rgba(255,255,255,0.2); margin-top: 10px; display: flex; justify-content: space-between; align-items: center; }
 
-        /* КНОПКИ УПРАВЛЕНИЯ ЗАМЕТКОЙ */
-        .note-actions { display: flex; gap: 8px; }
-        .action-icon { cursor: pointer; color: rgba(255,255,255,0.4); font-size: 12px; transition: color 0.2s; background: none; border: none;}
+        .note-actions { display: flex; gap: 12px; }
+        .action-icon { cursor: pointer; color: rgba(255,255,255,0.25); font-size: 11px; background: none; border: none; outline: none; transition: color 0.2s; }
         .action-icon:hover { color: #ffffff; }
 
-        /* КНОПКА МУЗЫКИ */
-        .music-toggle {
-            position: absolute; top: 15px; right: 15px; 
-            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
-            color: white; border-radius: 50%; width: 36px; height: 36px;
-            cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 14px;
-            z-index: 100;
+        /* КНОПКА ГЕНЕРАТИВНОГО СИНТЕЗАТОРА */
+        .music-control {
+            position: absolute; top: 22px; right: 24px; 
+            background: rgba(255,255,255,0.02); border: 1px solid rgba(255, 255, 255, 0.05);
+            color: rgba(255,255,255,0.5); border-radius: 50%; width: 34px; height: 34px;
+            cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 12px;
+            transition: all 0.3s; z-index: 10;
         }
+        .music-control:hover { background: rgba(255,255,255,0.08); color: #fff; }
     </style>
 </head>
 <body>
 
-    <button class="music-toggle" id="music-btn" title="Звук эмбиента">🎵</button>
-
     <div class="glass-container">
+        <button class="music-control" id="music-btn" title="Запустить генеративный саунд-дизайн">A</button>
+        
         <div class="header">
-            <h1 id="app-title">Заметки</h1>
-            <span class="stats" id="note-count">Всего: 0</span>
+            <h1>Заметки</h1>
+            <span class="stats" id="note-count">0 мыслей</span>
         </div>
 
         <!-- Поиск -->
-        <div class="search-box">
-            <input type="text" id="search-input" class="glass-input" placeholder="Поиск заметок...">
-        </div>
+        <input type="text" id="search-input" class="glass-input" placeholder="Поиск мыслей...">
 
         <!-- Поля ввода -->
-        <input type="text" id="note-heading" class="glass-input" placeholder="Заголовок..." style="margin-bottom: 8px;">
-        <textarea id="note-text" class="glass-input textarea-input" placeholder="Текст заметки..."></textarea>
+        <input type="text" id="note-heading" class="glass-input" placeholder="Заголовок...">
+        <textarea id="note-text" class="glass-input textarea-input" placeholder="Текст мысли..."></textarea>
         
-        <!-- 4 Кнопки быстрых модификаторов -->
+        <!-- Утилиты красоты -->
         <div class="toolbar">
             <button class="tool-btn" id="btn-important">Важно</button>
-            <button class="tool-btn" id="btn-caps">ЗАГЛАВНЫЕ</button>
-            <button class="tool-btn" id="btn-clear-inputs">Сброс</button>
-            <button class="tool-btn" id="btn-clear-all">Удалить все</button>
+            <button class="tool-btn" id="btn-caps">Caps</button>
+            <button class="tool-btn" id="btn-blur">Скрыть</button>
+            <button class="tool-btn" id="btn-reset">Сброс</button>
         </div>
 
-        <button id="add-btn" class="main-btn">Создать запись</button>
+        <button id="add-btn" class="main-btn">Добавить изящно</button>
         
-        <!-- Дополнительная скрытая панель утилит (Сортировки и бэкап) -->
-        <div class="toolbar" style="margin-bottom: 12px; grid-template-columns: repeat(3, 1fr);">
-            <button class="tool-btn" id="sort-date">По дате</button>
-            <button class="tool-btn" id="sort-abc">По алфавиту</button>
-            <button class="tool-btn" id="btn-backup">Копировать Бэкап</button>
+        <!-- Нижние утилиты -->
+        <div class="toolbar" style="grid-template-columns: repeat(3, 1fr); margin-bottom: 16px;">
+            <button class="tool-btn" id="sort-toggle">Инверсия</button>
+            <button class="tool-btn" id="font-toggle">Шрифт</button>
+            <button class="tool-btn" id="btn-clear-all">Стереть все</button>
         </div>
 
-        <!-- Контейнер заметок -->
+        <!-- Вывод заметок -->
         <div id="notes-container" class="notes-list"></div>
     </div>
 
-    <!-- ЧИСТЫЙ ЗВУКОВОЙ СИНТЕЗАТОР И ХРАНИЛИЩЕ LOCALSTORAGE -->
+    <!-- ПРОФЕССИОНАЛЬНЫЙ ГЕНЕРАТИВНЫЙ СИНТЕЗАТОР ЭМБИЕНТА (WEB AUDIO API) -->
     <script>
         let audioCtx = null;
-        let oscillators = [];
-        let isPlaying = false;
+        let delayNode = null;
+        let filterNode = null;
+        let isAmbientRunning = false;
+        let generatorInterval = null;
+
+        // Эмбиент-палитра (частоты красивых минорных аккордов)
+        const ambientChords = [
+            [65.41, 130.81, 196.00, 246.94], // Cmaj7 Глубокий космический
+            [55.00, 110.00, 164.81, 220.00], // Am Дорогой классический минор
+            [73.42, 146.83, 220.00, 293.66], // Dm7 Воздушный туманный
+            [48.99, 97.99, 146.83, 196.00]   // G6 Мягкий базовый пэд
+        ];
+
+        function startGenerativeMusic() {
+            if (audioCtx) return;
+            
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            
+            // Саунд-дизайн: Создаем цепочку эффектов (Мастер-фильтр и Эхо/Delay)
+            filterNode = audioCtx.createBiquadFilter();
+            filterNode.type = 'lowpass';
+            filterNode.frequency.setValueAtTime(400, audioCtx.currentTime); // Срезаем едкие высокие частоты
+            
+            delayNode = audioCtx.createDelay(2.0);
+            delayNode.delayTime.setValueAtTime(0.6, audioCtx.currentTime); // Объемное эхо
+            
+            let delayGain = audioCtx.createGain();
+            delayGain.gain.setValueAtTime(0.4, audioCtx.currentTime); // Громкость хвостов эха
+            
+            // Соединяем узлы: Сигнал -> Фильтр -> Эхо -> Выход
+            filterNode.connect(audioCtx.destination);
+            filterNode.connect(delayNode);
+            delayNode.connect(delayGain);
+            delayGain.connect(filterNode); // Фидбек петля для бесконечного эха
+
+            // Генеративный цикл: Каждые 4 секунды плавно синтезируем новый случайный аккорд
+            function spawnAtmosphere() {
+                const randomChord = ambientChords[Math.floor(Math.random() * ambientChords.length)];
+                
+                randomChord.forEach(freq => {
+                    let osc = audioCtx.createOscillator();
+                    let oscGain = audioCtx.createGain();
+                    
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                    
+                    // Плавное нарастание (Attack) и затухание (Release) звука, чтобы убрать щелчки
+                    oscGain.gain.setValueAtTime(0, audioCtx.currentTime);
+                    oscGain.gain.linearRampToValueAtTime(0.04, audioCtx.currentTime + 1.5);
+                    oscGain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 4.5);
+                    
+                    osc.connect(oscGain);
+                    oscGain.connect(filterNode);
+                    
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 4.6);
+                });
+
+                // Медленное блуждание частоты фильтра для эффекта "живого дыхания" звука
+                let filterFreq = 300 + Math.sin(audioCtx.currentTime) * 150;
+                filterNode.frequency.setTargetAtTime(filterFreq, audioCtx.currentTime, 1);
+            }
+
+            spawnAtmosphere();
+            generatorInterval = setInterval(spawnAtmosphere, 4000);
+        }
 
         document.getElementById('music-btn').addEventListener('click', () => {
-            if (!isPlaying) {
+            if (!isAmbientRunning) {
                 if (!audioCtx) {
-                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                    const freqs = [65.41, 98.00, 130.81, 196.00]; // Атмосферный монохромный минорный аккорд
-                    freqs.forEach((freq, idx) => {
-                        let osc = audioCtx.createOscillator();
-                        let gain = audioCtx.createGain();
-                        osc.type = 'sine';
-                        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-                        gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
-                        osc.connect(gain);
-                        gain.connect(audioCtx.destination);
-                        osc.start();
-                        oscillators.push({osc, gain, baseVol: 0.05 + (idx * 0.01)});
-                    });
-                    
-                    // Плавное "плавание" громкости
-                    setInterval(() => {
-                        oscillators.forEach(o => {
-                            let mod = o.baseVol * (0.5 + 0.5 * Math.sin(audioCtx.currentTime * 0.3));
-                            o.gain.gain.setTargetAtTime(mod, audioCtx.currentTime, 0.4);
-                        });
-                    }, 300);
+                    startGenerativeMusic();
                 } else {
                     audioCtx.resume();
                 }
-                isPlaying = true;
-                document.getElementById('music-btn').innerText = "🔊";
-                document.getElementById('music-btn').style.background = "rgba(255,255,255,0.2)";
+                isAmbientRunning = true;
+                document.getElementById('music-btn').innerText = "On";
+                document.getElementById('music-btn').style.background = "rgba(255,255,255,0.12)";
+                document.getElementById('music-btn').style.color = "#fff";
             } else {
                 audioCtx.suspend();
-                isPlaying = false;
-                document.getElementById('music-btn').innerText = "🔈";
-                document.getElementById('music-btn').style.background = "rgba(255,255,255,0.05)";
+                isAmbientRunning = false;
+                document.getElementById('music-btn').innerText = "Off";
+                document.getElementById('music-btn').style.background = "rgba(255,255,255,0.02)";
+                document.getElementById('music-btn').style.color = "rgba(255,255,255,0.5)";
             }
         });
 
-        // Мост работы с Браузерной Базой данных (LocalStorage) через JS
-        window.getSavedNotes = function() {
-            return localStorage.getItem('apple_glass_notes') || '[]';
-        }
-        window.saveNotesToStorage = function(jsonStr) {
-            localStorage.setItem('apple_glass_notes', jsonStr);
-        }
-        window.copyToClipboard = function(text) {
-            navigator.clipboard.writeText(text);
-            alert("Резервная копия скопирована в буфер обмена!");
-        }
+        // База данных сессий
+        window.pullDatabase = function() { return localStorage.getItem('apple_obsidian_db') || '[]'; }
+        window.pushDatabase = function(json) { localStorage.setItem('apple_obsidian_db', json); }
     </script>
 
-    <!-- PYTHON ДВИЖОК: РЕАЛИЗАЦИЯ 30 ФУНКЦИЙ УПРАВЛЕНИЯ -->
+    <!-- PYTHON ОБРАБОТЧИК ЛОГИКИ ПРИЛОЖЕНИЯ -->
     <script type="py">
         import json
         from pyscript import document
         from document import window
         from datetime import datetime
 
-        # Переменные состояний кнопок
-        is_important = False
-        is_caps = False
-        notes_data = []
+        state_important = False
+        state_caps = False
+        state_blur_mode = False
+        state_mono_font = False
+        database = []
 
-        # Функция загрузки данных
-        def load_notes():
-            global notes_data
+        def init_app():
+            global database
             try:
-                raw = window.getSavedNotes()
-                notes_data = json.loads(raw)
+                database = json.loads(window.pullDatabase())
             except:
-                notes_data = []
-            render_notes()
+                database = []
+            refresh_canvas()
 
-        # Функция сохранения данных
-        def save_notes():
-            window.saveNotesToStorage(json.dumps(notes_data))
-            update_counter()
+        def sync_counters():
+            window.pushDatabase(json.dumps(database))
+            document.querySelector("#note-count").innerText = f"{len(database)} мыслей"
 
-        def update_counter():
-            document.querySelector("#note-count").innerText = f"Всего: {len(notes_data)}"
-
-        # Функция перерисовки интерфейса списков
-        def render_notes(filter_text=""):
-            container = document.querySelector("#notes-container")
-            container.innerHTML = ""
+        def refresh_canvas(search_query=""):
+            box = document.querySelector("#notes-container")
+            box.innerHTML = ""
             
-            for index, note in enumerate(notes_data):
-                # Фильтрация по поиску (Функция Поиска)
-                if filter_text and filter_text.lower() not in note['title'].lower() and filter_text.lower() not in note['desc'].lower():
+            for idx, item in enumerate(database):
+                if search_query and search_query.lower() not in item['h'].lower() and search_query.lower() not in item['b'].lower():
                     continue
 
-                item = document.createElement("div")
-                item.classList.add("note-item")
-                if note.get('important'): item.classList.add("important")
-                if note.get('completed'): item.classList.add("completed")
+                card = document.createElement("div")
+                card.classList.add("note-item")
                 
-                # Шаблон рендеринга карточки
-                item.innerHTML = f"""
+                if item.get('imp'): card.classList.add("important")
+                if item.get('done'): card.classList.add("completed")
+                if state_blur_mode and not item.get('done'): card.classList.add("secured")
+                if state_mono_font: card.style.fontFamily = "monospace"
+
+                word_count = len(item['b'].split())
+                card.innerHTML = f"""
                     <div class="note-title">
-                        <span>{note['title']}</span>
+                        <span>{item['h']}</span>
                         <div class="note-actions">
-                            <button class="action-icon" onclick="window.py_toggle_complete({index})">✔</button>
-                            <button class="action-icon" onclick="window.py_delete_note({index})">✖</button>
+                            <button class="action-icon" onclick="window.py_action_done({idx})">✓</button>
+                            <button class="action-icon" onclick="window.py_action_del({idx})">✕</button>
                         </div>
                     </div>
-                    <div class="note-desc">{note['desc']}</div>
+                    <div class="note-desc">{item['b']}</div>
                     <div class="note-meta">
-                        <span>{note['date']}</span>
-                        <span>Символов: {len(note['desc'])}</span>
+                        <span>{item['dt']}</span>
+                        <span>{len(item['b'])} симв.</span>
                     </div>
                 """
-                container.appendChild(item)
-            update_counter()
+                box.appendChild(card)
+            sync_counters()
 
-        # --- СПИСОК РЕАЛИЗОВАННЫХ ФУНКЦИЙ ---
-        
-        def add_note(event):
-            global is_important
-            head_in = document.querySelector("#note-heading")
-            text_in = document.querySelector("#note-text")
+        def commit_new_note(event):
+            global state_important
+            h_field = document.querySelector("#note-heading")
+            b_field = document.querySelector("#note-text")
             
-            title = head_in.value.strip() or "Без названия"
-            desc = text_in.value.strip()
-            
-            if not text_in.value.strip():
-                return # Не создавать пустые
+            if not b_field.value.strip():
+                return
                 
-            if is_caps:
-                title = title.upper()
-                desc = desc.upper()
+            heading = h_field.value.strip()
+            body = b_field.value.strip()
+            
+            if not heading:
+                heading = f"Мысль #{len(database) + 1}"
+                
+            if state_caps:
+                heading = heading.upper()
+                body = body.upper()
 
-            new_note = {
-                "title": title,
-                "desc": desc,
-                "important": is_important,
-                "completed": False,
-                "date": datetime.now().strftime("%d.%m.%Y %H:%M")
+            new_entry = {
+                "h": heading,
+                "b": body,
+                "imp": state_important,
+                "done": False,
+                "dt": datetime.now().strftime("%H:%M · %d.%m.%Y")
             }
             
-            notes_data.insert(0, new_note)
-            save_notes()
-            render_notes()
+            database.insert(0, new_entry)
+            refresh_canvas()
             
-            # Сброс полей
-            head_in.value = ""
-            text_in.value = ""
-            if is_important: toggle_important(None)
+            h_field.value = ""
+            b_field.value = ""
+            
+            if state_important: 
+                trigger_important_state(None)
 
-        def toggle_important(event):
-            global is_important
-            is_important = not is_important
-            btn = document.querySelector("#btn-important")
-            btn.classList.toggle("active", is_important)
+        def trigger_important_state(event):
+            global state_important
+            state_important = not state_important
+            document.querySelector("#btn-important").classList.toggle("active", state_important)
 
-        def toggle_caps(event):
-            global is_caps
-            is_caps = not is_caps
-            btn = document.querySelector("#btn-caps")
-            btn.classList.toggle("active", is_caps)
+        def trigger_caps_state(event):
+            global state_caps
+            state_caps = not state_caps
+            document.querySelector("#btn-caps").classList.toggle("active", state_caps)
 
-        def clear_inputs(event):
+        def trigger_blur_state(event):
+            global state_blur_mode
+            state_blur_mode = not state_blur_mode
+            document.querySelector("#btn-blur").classList.toggle("active", state_blur_mode)
+            refresh_canvas()
+
+        def trigger_font_state(event):
+            global state_mono_font
+            state_mono_font = not state_mono_font
+            document.querySelector("#font-toggle").classList.toggle("active", state_mono_font)
+            refresh_canvas()
+
+        def action_invert_sort(event):
+            global database
+            database.reverse()
+            refresh_canvas()
+
+        def action_reset_inputs(event):
             document.querySelector("#note-heading").value = ""
             document.querySelector("#note-text").value = ""
 
-        def clear_all(event):
-            global notes_data
-            if window.confirm("Вы точно хотите очистить все заметки?"):
-                notes_data = []
-                save_notes()
-                render_notes()
+        def action_wipe_all(event):
+            global database
+            if window.confirm("Удалить всю базу мыслей?"):
+                database = []
+                refresh_canvas()
 
-        def search_handler(event):
-            val = document.querySelector("#search-input").value
-            render_notes(val)
+        def action_search_stream(event):
+            query = document.querySelector("#search-input").value
+            refresh_canvas(query)
 
-        # Сортировки
-        def sort_by_date(event):
-            global notes_data
-            notes_data.reverse() # Переворот порядка временной шкалы
-            render_notes()
+        def card_toggle_done(index):
+            idx = int(index)
+            database[idx]['done'] = not database[idx].get('done', False)
+            refresh_canvas()
 
-        def sort_by_abc(event):
-            global notes_data
-            notes_data.sort(key=lambda x: x['title'].lower())
-            render_notes()
+        def card_delete(index):
+            idx = int(index)
+            database.pop(idx)
+            refresh_canvas()
 
-        def backup_notes(event):
-            window.copyToClipboard(json.dumps(notes_data))
+        window.py_action_done = card_toggle_done
+        window.py_action_del = card_delete
 
-        # Глобальные методы для кликов по кнопкам внутри элементов
-        def toggle_complete(index):
-            notes_data[int(index)]['completed'] = not notes_data[int(index)].get('completed', False)
-            save_notes()
-            render_notes()
+        document.querySelector("#add-btn").onclick = commit_new_note
+        document.querySelector("#btn-important").onclick = trigger_important_state
+        document.querySelector("#btn-caps").onclick = trigger_caps_state
+        document.querySelector("#btn-blur").onclick = trigger_blur_state
+        document.querySelector("#font-toggle").onclick = trigger_font_state
+        document.querySelector("#sort-toggle").onclick = action_invert_sort
+        document.querySelector("#btn-reset").onclick = action_reset_inputs
+        document.querySelector("#btn-clear-all").onclick = action_wipe_all
+        document.querySelector("#search-input").oninput = action_search_stream
 
-        def delete_note(index):
-            notes_data.pop(int(index))
-            save_notes()
-            render_notes()
-
-        # Привязываем функции к окну браузера window для доступа из HTML шаблонов заметок
-        window.py_toggle_complete = toggle_complete
-        window.py_delete_note = delete_note
-
-        # Привязка событий к кнопкам интерфейса
-        document.querySelector("#add-btn").onclick = add_note
-        document.querySelector("#btn-important").onclick = toggle_important
-        document.querySelector("#btn-caps").onclick = toggle_caps
-        document.querySelector("#btn-clear-inputs").onclick = clear_inputs
-        document.querySelector("#btn-clear-all").onclick = clear_all
-        document.querySelector("#search-input").oninput = search_handler
-        document.querySelector("#sort-date").onclick = sort_by_date
-        document.querySelector("#sort-abc").onclick = sort_by_abc
-        document.querySelector("#btn-backup").onclick = backup_notes
-
-        # Стартовая инициализация приложения
-        load_notes()
+        init_app()
     </script>
 
 </body>
