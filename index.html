@@ -188,32 +188,56 @@
         </div>
     </div>
 
-    <!-- КРИСТАЛЬНО ЧИСТЫЙ АУДИОДВИЖОК + АВТОНОМНЫЙ ХРАНИТЕЛЬ ЛЕНТЫ -->
+    <!-- ЧИСТЫЙ ЗВУК ONEHEART + СВЯЗЬ С ОБЛАКОМ SUPABASE ЧЕРЕЗ АЛФАВИТНЫЙ JSON -->
     <script>
         let currentUser = localStorage.getItem('nc_cloud_user') || "";
         let isPublicNote = false;
         let currentFeedChannel = "my";
-        
-        // Синхронизация через локальное изолированное хранилище устройств
         let localMyNotes = JSON.parse(localStorage.getItem('nc_local_my_db')) || []; 
-        let cloudPublicNotes = JSON.parse(localStorage.getItem('nc_global_feed_db')) || []; 
+        let cloudPublicNotes = []; 
+
+        const API_URL = "https://supabase.co"; 
+        const API_KEY = "sb_publishable_fm9-bWhIWtekOx1-vg9i6Q_ZOMs4ZDJlZmM0ZTktODU3Zi00N2VmLTkzYTEtZTFiNmY0YTU5ZmI0";
 
         if (currentUser) {
             document.getElementById('auth-screen').style.display = 'none';
+            fetchCloudNotes();
         }
 
         function handleLogin() {
-            const user = document.getElementById('auth-username').value.trim();
-            const pass = document.getElementById('auth-password').value.trim();
-            if (!user || !pass) return;
-            
-            currentUser = user;
-            localStorage.setItem('nc_cloud_user', user);
-            document.getElementById('auth-screen').style.opacity = '0';
-            setTimeout(() => { document.getElementById('auth-screen').style.display = 'none'; }, 500);
-            
-            startGenerativeEngine();
-            renderNotesList();
+            try {
+                const user = document.getElementById('auth-username').value.trim();
+                const pass = document.getElementById('auth-password').value.trim();
+                if (!user || !pass) return;
+                
+                currentUser = user;
+                localStorage.setItem('nc_cloud_user', user);
+                document.getElementById('auth-screen').style.opacity = '0';
+                setTimeout(() => { document.getElementById('auth-screen').style.display = 'none'; }, 500);
+                
+                fetchCloudNotes();
+                startGenerativeEngine();
+            } catch(err) {
+                alert("Ошибка авторизации: " + err.message);
+            }
+        }
+
+        function fetchCloudNotes() {
+            fetch(`${API_URL}?select=*&order=id.desc`, {
+                method: "GET",
+                headers: {
+                    "apikey": API_KEY,
+                    "Authorization": `Bearer ${API_KEY}`
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (Array.isArray(data)) {
+                    cloudPublicNotes = data;
+                    renderNotesList();
+                }
+            })
+            .catch(err => console.log("Сбой загрузки ленты"));
         }
 
         // КРИСТАЛЬНО ЧИСТЫЙ СИНТЕЗАТОР ONEHEART
@@ -314,7 +338,7 @@
             } else {
                 document.getElementById('screen-list').classList.add('active');
                 document.getElementById('tab-list').classList.add('active');
-                renderNotesList(); 
+                fetchCloudNotes(); 
             }
         }
 
@@ -331,7 +355,6 @@
             renderNotesList();
         }
 
-        // ПУБЛИКАЦИЯ ЗАПИСЕЙ БЕЗ СБОЕВ ВНЕШНИХ СЕРВЕРОВ
         function publishNote() {
             const bField = document.getElementById('note-text');
             if (bField.value.trim() === "") return;
@@ -342,29 +365,41 @@
             const timeStamp = new Date().toLocaleTimeString('ru-RU', {hour: '2-digit', minute:'2-digit'}) + ' · ' + new Date().toLocaleDateString('ru-RU', {day: '2-digit', month: '2-digit'});
 
             const newNote = {
-                id: Date.now(),
-                title: heading,
-                body: bField.value.trim(),
                 author: currentUser,
+                body: bField.value.trim(),
                 privacy: isPublicNote ? "public" : "private",
-                time: timeStamp
+                time: timeStamp,
+                title: heading
             };
 
-            // Сохраняем в личную вкладку
             localMyNotes.unshift(newNote);
             localStorage.setItem('nc_local_my_db', JSON.stringify(localMyNotes));
 
-            // Если пометка публичная — она СРАЗУ ГАРАНТИРОВАННО дублируется в общую ленту рекомендаций
             if (isPublicNote) {
-                cloudPublicNotes.unshift(newNote);
-                localStorage.setItem('nc_global_feed_db', JSON.stringify(cloudPublicNotes));
-                setFeedChannel('feed');
-            } else {
-                setFeedChannel('my');
+                // ОТПРАВЛЯЕМ В КРИСТАЛЬНО ЧИСТОЕ ОБЛАКО SUPABASE С АЛФАВИТНЫМИ КЛЮЧАМИ
+                fetch(API_URL, {
+                    method: "POST",
+                    headers: {
+                        "apikey": API_KEY,
+                        "Authorization": `Bearer ${API_KEY}`,
+                        "Content-Type": "application/json",
+                        "Prefer": "return=minimal"
+                    },
+                    body: JSON.stringify(newNote)
+                })
+                .then(() => {
+                    fetchCloudNotes();
+                });
             }
             
             document.getElementById('note-heading').value = "";
             bField.value = "";
+            
+            if (isPublicNote) {
+                setFeedChannel('feed');
+            } else {
+                setFeedChannel('my');
+            }
             switchScreen('list');
         }
 
@@ -384,7 +419,7 @@
                     openNoteViewer(note);
                 };
                 
-                const deleteBtn = `<button class="action-del" onclick="deleteNote(${note.id}, event)">✕</button>`;
+                const deleteBtn = (currentFeedChannel === 'my') ? `<button class="action-del" onclick="deleteNote(${note.id || 0}, '${note.title}', event)">✕</button>` : '';
 
                 card.innerHTML = `
                     <div class="note-title">
@@ -405,15 +440,22 @@
             renderNotesList(document.getElementById('search-input').value);
         }
 
-        function deleteNote(id, event) {
+        function deleteNote(id, title, event) {
             event.stopPropagation();
-            localMyNotes = localMyNotes.filter(note => note.id !== id);
+            localMyNotes = localMyNotes.filter(note => note.title !== title);
             localStorage.setItem('nc_local_my_db', JSON.stringify(localMyNotes));
-            
-            cloudPublicNotes = cloudPublicNotes.filter(note => note.id !== id);
-            localStorage.setItem('nc_global_feed_db', JSON.stringify(cloudPublicNotes));
-            
             renderNotesList();
+
+            let deleteUrl = id ? `${API_URL}?id=eq.${id}` : `${API_URL}?title=eq.${encodeURIComponent(title)}&author=eq.${encodeURIComponent(currentUser)}`;
+            
+            fetch(deleteUrl, {
+                method: "DELETE",
+                headers: {
+                    "apikey": API_KEY,
+                    "Authorization": `Bearer ${API_KEY}`
+                }
+            })
+            .then(() => fetchCloudNotes());
         }
 
         function openNoteViewer(note) {
