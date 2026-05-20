@@ -9,6 +9,9 @@ orientation = portrait
 fullscreen = 1
 icon.filename = logo.png
 
+# ГАРАНТИРУЕТ СБОРКУ ОДНОГО ЦЕЛЬНОГО ФАЙЛА .APK БЕЗ СЛОЖНЫХ НАБОРОВ
+android.build_mode = debug
+
 # Настройки для сборки Android
 android.api = 33
 android.minapi = 21
