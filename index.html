@@ -15,7 +15,7 @@
         body, html {
             height: 100%;
             overflow: hidden;
-            background: linear-gradient(135deg, #010101, #040405, #08080a, #020203);
+            background: linear-gradient(135deg, #010101, #030304, #060608, #020202);
             background-size: 400% 400%;
             animation: obsidianGradient 40s ease infinite;
             display: flex;
@@ -39,17 +39,17 @@
         }
         .auth-box {
             width: 100%; max-width: 320px;
-            background: rgba(20, 20, 25, 0.6); backdrop-filter: blur(30px);
-            padding: 30px; border-radius: 24px; border: 1px solid rgba(255,255,255,0.03);
-            text-align: center; box-shadow: 0 30px 60px rgba(0,0,0,0.8);
+            background: rgba(15, 15, 18, 0.6); backdrop-filter: blur(30px);
+            padding: 30px; border-radius: 24px; border: 1px solid rgba(255,255,255,0.02);
+            text-align: center; box-shadow: 0 30px 60px rgba(0,0,0,0.9);
         }
         .auth-box h2 { color: #fff; font-size: 24px; margin-bottom: 8px; font-weight: 700; letter-spacing: -0.5px; }
-        .auth-box p { color: rgba(255, 255, 255, 0.25); font-size: 13px; margin-bottom: 24px; }
+        .auth-box p { color: rgba(255, 255, 255, 0.2); font-size: 13px; margin-bottom: 24px; }
 
         /* ГЛАВНЫЙ КОНТЕЙНЕР ПРИЛОЖЕНИЯ */
         .glass-container {
             width: 100%; max-width: 380px; height: 85vh; max-height: 720px;
-            background: rgba(12, 12, 14, 0.4); backdrop-filter: blur(40px) saturate(200%);
+            background: rgba(10, 10, 12, 0.45); backdrop-filter: blur(40px) saturate(200%);
             -webkit-backdrop-filter: blur(40px) saturate(200%);
             border-radius: 28px; border: 1px solid rgba(255, 255, 255, 0.03);
             padding: 24px; display: flex; flex-direction: column;
@@ -60,42 +60,42 @@
         .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
         .logo { color: #ffffff; font-size: 21px; font-weight: 700; letter-spacing: -0.5px; }
         
-        .tabs { display: flex; background: rgba(255,255,255,0.02); padding: 3px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.01); }
+        .tabs { display: flex; background: rgba(255,255,255,0.015); padding: 3px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.01); }
         .tab-btn {
             padding: 8px 14px; background: none; border: none;
-            color: rgba(255,255,255,0.35); font-size: 13px; font-weight: 600;
+            color: rgba(255,255,255,0.3); font-size: 13px; font-weight: 600;
             cursor: pointer; border-radius: 9px; transition: all 0.2s ease;
         }
-        .tab-btn.active { background: rgba(255,255,255,0.07); color: #ffffff; }
+        .tab-btn.active { background: rgba(255,255,255,0.06); color: #ffffff; }
 
-        /* ТУЛБАР ЛЕНТЫ (Мои заметки / Рекомендации) */
+        /* ТУЛБАР ЛЕНТЫ */
         .sub-bar { display: flex; gap: 8px; margin-bottom: 16px; }
         .sub-tab-btn {
-            flex: 1; padding: 10px; background: rgba(255,255,255,0.015);
-            border: 1px solid rgba(255,255,255,0.03); border-radius: 12px;
-            color: rgba(255,255,255,0.4); font-size: 12px; font-weight: 600;
+            flex: 1; padding: 10px; background: rgba(255,255,255,0.01);
+            border: 1px solid rgba(255,255,255,0.02); border-radius: 12px;
+            color: rgba(255,255,255,0.35); font-size: 12px; font-weight: 600;
             cursor: pointer; transition: all 0.2s ease; text-align: center;
         }
-        .sub-tab-btn.active { background: rgba(255,255,255,0.06); color: #fff; border-color: rgba(255,255,255,0.1); }
+        .sub-tab-btn.active { background: rgba(255,255,255,0.05); color: #fff; border-color: rgba(255,255,255,0.08); }
 
         /* ИНПУТЫ */
         .glass-input {
-            width: 100%; padding: 15px 16px; background: rgba(255, 255, 255, 0.015);
-            border: 1px solid rgba(255, 255, 255, 0.03); border-radius: 14px;
+            width: 100%; padding: 15px 16px; background: rgba(255, 255, 255, 0.01);
+            border: 1px solid rgba(255, 255, 255, 0.025); border-radius: 14px;
             color: #ffffff; font-size: 15px; outline: none; transition: all 0.25s ease; margin-bottom: 12px;
         }
-        .glass-input::placeholder { color: rgba(255,255,255,0.18); }
-        .glass-input:focus { background: rgba(255, 255, 255, 0.03); border-color: rgba(255,255,255,0.1); }
+        .glass-input::placeholder { color: rgba(255,255,255,0.15); }
+        .glass-input:focus { background: rgba(255, 255, 255, 0.02); border-color: rgba(255,255,255,0.08); }
         .textarea-input { flex: 1; min-height: 160px; resize: none; margin-bottom: 16px; }
 
         /* СЕЛЕКТОР ПРИВАТНОСТИ */
         .privacy-selector { display: flex; gap: 8px; margin-bottom: 16px; }
         .privacy-btn {
-            flex: 1; padding: 12px; background: rgba(255,255,255,0.015);
-            border: 1px solid rgba(255,255,255,0.03); border-radius: 12px;
-            color: rgba(255,255,255,0.3); font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s;
+            flex: 1; padding: 12px; background: rgba(255,255,255,0.01);
+            border: 1px solid rgba(255,255,255,0.025); border-radius: 12px;
+            color: rgba(255,255,255,0.25); font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s;
         }
-        .privacy-btn.active { background: rgba(255, 255, 255, 0.06); color: #ffffff; border-color: rgba(255,255,255,0.1); }
+        .privacy-btn.active { background: rgba(255, 255, 255, 0.05); color: #ffffff; border-color: rgba(255,255,255,0.08); }
 
         /* БЕЛАЯ КНОПКА APPLE */
         .main-btn {
@@ -113,36 +113,39 @@
 
         /* КАРТОЧКА МЫСЛИ */
         .note-item {
-            background: rgba(255, 255, 255, 0.01) !important; border: 1px solid rgba(255, 255, 255, 0.02) !important;
+            background: rgba(255, 255, 255, 0.008) !important; border: 1px solid rgba(255, 255, 255, 0.015) !important;
             padding: 16px; border-radius: 16px; color: #ffffff; margin-bottom: 12px;
             position: relative; animation: appleSpawn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-            transition: all 0.2s ease; cursor: pointer; display: block; text-decoration: none;
+            transition: all 0.2s ease; cursor: pointer; display: block;
         }
-        .note-item:hover { background: rgba(255, 255, 255, 0.02) !important; border-color: rgba(255,255,255,0.05) !important; }
+        .note-item:hover { background: rgba(255, 255, 255, 0.015) !important; border-color: rgba(255,255,255,0.04) !important; }
         @keyframes appleSpawn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
 
         .note-title { font-weight: 600; font-size: 15.5px; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; color: #ffffff; }
-        .note-desc { font-size: 13.5px; color: rgba(255, 255, 255, 0.45); word-break: break-word; line-height: 1.45; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-        .note-meta { font-size: 10px; color: rgba(255,255,255,0.15); margin-top: 12px; display: flex; justify-content: space-between; align-items: center; }
-        .note-author { font-weight: 600; color: rgba(255, 255, 255, 0.35); text-transform: lowercase; }
+        .note-desc { font-size: 13.5px; color: rgba(255, 255, 255, 0.4); word-break: break-word; line-height: 1.45; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+        .note-meta { font-size: 10px; color: rgba(255,255,255,0.12); margin-top: 12px; display: flex; justify-content: space-between; align-items: center; }
+        .note-author { font-weight: 600; color: rgba(255, 255, 255, 0.3); text-transform: lowercase; }
 
-        .action-del { cursor: pointer; color: rgba(255,255,255,0.15); font-size: 11px; background: none; border: none; outline: none; padding: 4px; position: relative; z-index: 10; }
+        .action-del { cursor: pointer; color: rgba(255,255,255,0.12); font-size: 11px; background: none; border: none; outline: none; padding: 4px; }
         .action-del:hover { color: #ff453a; }
 
-        /* ПОЛНОЭКРАННЫЙ ПРОСМОТР ЗАМЕТКИ */
+        /* ПОЛНОЭКРАННЫЙ ПРОСМОТР */
         .viewer-modal {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: #050506; border-radius: 28px; padding: 24px;
+            background: #040405; border-radius: 28px; padding: 24px;
             display: none; flex-direction: column; z-index: 500; animation: modalFade 0.25s ease;
         }
         @keyframes modalFade { from { opacity: 0; transform: scale(0.98); } to { opacity: 1; transform: scale(1); } }
         .viewer-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
-        .viewer-close { background: none; border: none; color: #fff; font-size: 20px; cursor: pointer; opacity: 0.5; transition: opacity 0.2s; }
+        .viewer-close { background: none; border: none; color: #fff; font-size: 20px; cursor: pointer; opacity: 0.4; }
         .viewer-close:hover { opacity: 1; }
         .viewer-title { color: #fff; font-size: 22px; font-weight: 700; margin-bottom: 8px; letter-spacing: -0.5px; }
-        .viewer-author { font-size: 12px; color: rgba(255,255,255,0.35); margin-bottom: 20px; font-weight: 600; text-transform: lowercase; }
-        .viewer-body { color: rgba(255,255,255,0.7); font-size: 15px; line-height: 1.6; overflow-y: auto; flex: 1; word-break: break-word; padding-right: 4px; }
+        .viewer-author { font-size: 12px; color: rgba(255,255,255,0.3); margin-bottom: 20px; font-weight: 600; text-transform: lowercase; }
+        .viewer-body { color: rgba(255,255,255,0.65); font-size: 15px; line-height: 1.6; overflow-y: auto; flex: 1; word-break: break-word; }
         .viewer-body::-webkit-scrollbar { width: 0px; }
+        
+        /* ТЕКСТ ТЕКУЩЕГО ТРЕКА */
+        .track-info { font-size: 9px; color: rgba(255,255,255,0.15); text-transform: uppercase; letter-spacing: 1px; font-weight: 700; margin-top: 4px; }
     </style>
 </head>
 <body>
@@ -160,7 +163,6 @@
 
     <!-- ОСНОВНОЙ МОДУЛЬ -->
     <div class="glass-container">
-        <!-- Полноэкранный просмотр карточки -->
         <div class="viewer-modal" id="viewer-modal">
             <div class="viewer-header">
                 <div class="viewer-author" id="v-author">автор: @user</div>
@@ -170,16 +172,17 @@
             <div class="viewer-body" id="v-body">Полный текст...</div>
         </div>
 
-        <!-- Шапка -->
         <div class="top-bar">
-            <div class="logo">Notes club</div>
+            <div>
+                <div class="logo">Notes club</div>
+                <div class="track-info" id="track-display">Audio: Off</div>
+            </div>
             <div class="tabs">
                 <button class="tab-btn active" id="tab-write" onclick="switchScreen('write')">Писать</button>
                 <button class="tab-btn" id="tab-list" onclick="switchScreen('list')">Лента</button>
             </div>
         </div>
 
-        <!-- ОКНО 1: ПИСАТЬ -->
         <div id="screen-write" class="screen active">
             <input type="text" id="note-heading" class="glass-input" placeholder="Название мысли...">
             <textarea id="note-text" class="glass-input textarea-input" placeholder="Начните писать здесь..."></textarea>
@@ -192,7 +195,6 @@
             <button class="main-btn" onclick="publishNote()">Поделиться мыслью</button>
         </div>
 
-        <!-- ОКНО 2: ЛЕНТА -->
         <div id="screen-list" class="screen">
             <div class="sub-bar">
                 <button class="sub-tab-btn active" id="sub-tab-my" onclick="setFeedChannel('my')">Мои заметки</button>
@@ -207,26 +209,23 @@
         </div>
     </div>
 
+    <!-- АЛГОРИТМИЧЕСКИЙ ЖИВОЙ ЗВУКОВОЙ ДВИЖОК -->
     <script>
         let audioCtx = null;
         let isMusicRunning = false;
-        let currentUser = localStorage.getItem('notes_club_user_v3') || "";
+        let currentUser = localStorage.getItem('notes_club_user_v4') || "";
         
         let isPublicNote = false;
         let currentFeedChannel = "my";
+        let database = [];
 
-        // Системная база данных (Полноценное чтение кэша)
-        let database = JSON.parse(localStorage.getItem('notes_club_db_v3'));
-        if (!database || !Array.isArray(database)) {
-            database = [
-                { id: 1, title: "Эстетика осени", body: "Капли дождя бьют по стеклу окон кофейни, растворяясь в неоновом свете вечернего города. В такие моменты хочется просто молчать.", author: "Arseny", privacy: "public", time: "18:24 · 19.05" },
-                { id: 2, title: "Звуки тишины", body: "Эмбиент-музыка Oneheart помогает сфокусироваться на внутреннем мире. Ностальгия — это не грусть, это память о прекрасном.", author: "Sofia_Ambient", privacy: "public", time: "12:05 · 18.05" },
-                { id: 3, title: "Утренний Токио", body: "Пустые улицы, туман над линиями метро и едва заметный розоватый рассвет. Город еще спит, сохраняя свои тайны.", author: "Neon_Dreamer", privacy: "public", time: "05:11 · 15.05" }
-            ];
-            localStorage.setItem('notes_club_db_v3', JSON.stringify(database));
-        }
+        // 1. ПРИНУДИТЕЛЬНОЕ ОЧИЩЕНИЕ ВСЕХ СТАРЫХ ЗАПИСЕЙ СЕЙЧАС (И личных, и публичных)
+        localStorage.removeItem('notes_club_db');
+        localStorage.removeItem('notes_club_db_v2');
+        localStorage.removeItem('notes_club_db_v3');
+        localStorage.setItem('notes_club_db_v4', JSON.stringify([]));
 
-        // Проверка сессии (Запоминание пользователя навсегда)
+        // Проверка сессии входа
         if (currentUser) {
             document.getElementById('auth-screen').style.display = 'none';
         }
@@ -237,93 +236,149 @@
             if (!user || !pass) return;
             
             currentUser = user;
-            localStorage.setItem('notes_club_user_v3', user); // Сохраняем имя автора навсегда
+            localStorage.setItem('notes_club_user_v4', user);
             document.getElementById('auth-screen').style.opacity = '0';
             setTimeout(() => { document.getElementById('auth-screen').style.display = 'none'; }, 500);
             
-            startOneheartAmbient();
+            startGenerativeEngine();
         }
 
-        // ГЛУБОКИЙ ГЕНЕРАТИВНЫЙ СИНТЕЗАТОР ONEHEART
-        function startOneheartAmbient() {
+        // 2. ВЫСОКОТЕХНОЛОГИЧНЫЙ АЛГОРИТМИЧЕСКИЙ СИНТЕЗАТОР ЭМБИЕНТА
+        let trackId = 1;
+        let trackInterval = null;
+        let layersInterval = null;
+        let masterGain = null;
+        let masterFilter = null;
+        let delayNode = null;
+
+        // Наборы ностальгических лоу-фай тональностей (смена каждые 2 минуты)
+        const scalePresets = [
+            { name: "Track Alpha: Solitude", root: 55.00, chord: [1, 1.2, 1.5, 1.8], melody: [220, 261.63, 329.63, 392.00] },
+            { name: "Track Beta: Nostalgia", root: 65.41, chord: [1, 1.25, 1.33, 1.5], melody: [261.63, 311.13, 349.23, 415.30] },
+            { name: "Track Gamma: Snowfall", root: 48.99, chord: [1, 1.18, 1.4, 1.6], melody: [196.00, 246.94, 293.66, 369.99] }
+        ];
+        let activeScale = scalePresets[0];
+
+        function startGenerativeEngine() {
             if (isMusicRunning) return;
             
             audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             
-            let masterFilter = audioCtx.createBiquadFilter();
-            masterFilter.type = 'lowpass';
-            masterFilter.frequency.setValueAtTime(250, audioCtx.currentTime); // Очень глухой, бархатный лоу-пасс
-            masterFilter.connect(audioCtx.destination);
-
-            let delayNode = audioCtx.createDelay(3.0);
-            delayNode.delayTime.setValueAtTime(0.8, audioCtx.currentTime);
+            // Мастер-секция эффектов
+            masterGain = audioCtx.createGain();
+            masterGain.gain.setValueAtTime(0.28, audioCtx.currentTime); // Плотный высокий уровень звука
             
-            let delayGain = audioCtx.createGain();
-            delayGain.gain.setValueAtTime(0.55, audioCtx.currentTime); // Хвосты пространственного эхо
+            masterFilter = audioCtx.createBiquadFilter();
+            masterFilter.type = 'lowpass';
+            masterFilter.frequency.setValueAtTime(240, audioCtx.currentTime); // Глубокий матовый лоу-пасс срез
+            
+            delayNode = audioCtx.createDelay(3.0);
+            delayNode.delayTime.setValueAtTime(0.75, audioCtx.currentTime);
+            
+            let delayFeedback = audioCtx.createGain();
+            delayFeedback.gain.setValueAtTime(0.55, audioCtx.currentTime); // Объемное эхо-зацикливание
+
+            masterGain.connect(masterFilter);
+            masterFilter.connect(audioCtx.destination);
             
             masterFilter.connect(delayNode);
-            delayNode.connect(delayGain);
-            delayGain.connect(masterFilter);
+            delayNode.connect(delayFeedback);
+            delayFeedback.connect(masterFilter);
 
-            // Текстура шума и тепла ленты
-            function initTapeHiss() {
+            // Полноценный генератор текстурного аналогового кассетного шума
+            function initTapeNoise() {
                 let bufferSize = 2 * audioCtx.sampleRate,
-                    noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate),
-                    output = noiseBuffer.getChannelData(0);
-                for (let i = 0; i < bufferSize; i++) { output[i] = Math.random() * 2 - 1; }
-                let hissSource = audioCtx.createBufferSource();
-                hissSource.buffer = noiseBuffer;
-                hissSource.loop = true;
+                    buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate),
+                    data = buffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) { data[i] = Math.random() * 2 - 1; }
+                let source = audioCtx.createBufferSource();
+                source.buffer = buffer;
+                source.loop = true;
 
-                let hissFilter = audioCtx.createBiquadFilter();
-                hissFilter.type = 'bandpass';
-                hissFilter.frequency.setValueAtTime(450, audioCtx.currentTime);
+                let noiseFilter = audioCtx.createBiquadFilter();
+                noiseFilter.type = 'bandpass';
+                noiseFilter.frequency.setValueAtTime(420, audioCtx.currentTime);
 
-                let hissGain = audioCtx.createGain();
-                hissGain.gain.setValueAtTime(0.014, audioCtx.currentTime);
+                let noiseGain = audioCtx.createGain();
+                noiseGain.gain.setValueAtTime(0.015, audioCtx.currentTime); // Теплый хруст ленты
 
-                hissSource.connect(hissFilter);
-                hissFilter.connect(hissGain);
-                hissGain.connect(audioCtx.destination);
-                hissSource.start();
+                source.connect(noiseFilter);
+                noiseFilter.connect(noiseGain);
+                noiseGain.connect(audioCtx.destination);
+                source.start();
             }
-            initTapeHiss();
+            initTapeNoise();
 
-            const chords = [
-                [55.00, 110.00, 146.83, 164.81], // Идеальные минорные волны одиночества
-                [65.41, 130.81, 174.61, 196.00]
-            ];
+            // Функция динамической перестройки слоев (Каждые 40 секунд)
+            function mutateAudioLayers() {
+                const now = audioCtx.currentTime;
+                document.getElementById('track-display').innerText = `${activeScale.name} · Evolution`;
 
-            function runNostalgiaWave() {
-                const activeChord = chords[Math.floor(Math.random() * chords.length)];
-                activeChord.forEach(freq => {
+                // Синтез глубоких фоновых подкладов (Pads)
+                activeScale.chord.forEach((multiplier, index) => {
                     let osc = audioCtx.createOscillator();
-                    let gainNode = audioCtx.createGain();
+                    let gain = audioCtx.createGain();
                     
-                    osc.type = 'triangle';
+                    osc.type = 'triangle'; // Лоу-фай мягкий тон
+                    let flutter = (Math.random() * 2 - 1) * 0.4;
+                    osc.frequency.setValueAtTime((activeScale.root * multiplier) + flutter, now);
                     
-                    let tapeDrift = (Math.random() * 2 - 1) * 0.38;
-                    osc.frequency.setValueAtTime(freq + tapeDrift, audioCtx.currentTime);
+                    // Плавное дыхание звука: атака 3 секунды, удержание, медленный релиз
+                    gain.gain.setValueAtTime(0, now);
+                    gain.gain.linearRampToValueAtTime(0.2, now + 3.0);
+                    gain.gain.exponentialRampToValueAtTime(0.0001, now + 38.0);
                     
-                    gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
-                    gainNode.gain.linearRampToValueAtTime(0.24, audioCtx.currentTime + 2.5); // Нарастание
-                    gainNode.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 5.8); // Затухание
-                    
-                    osc.connect(gainNode);
-                    gainNode.connect(masterFilter);
-                    osc.start();
-                    osc.stop(audioCtx.currentTime + 5.9);
+                    osc.connect(gain);
+                    gain.connect(masterGain);
+                    osc.start(now);
+                    osc.stop(now + 39.0);
                 });
+
+                // Генерация случайных капель меланхоличной мелодии на верхнем плане
+                for (let i = 0; i < 6; i++) {
+                    let timeOffset = i * (4 + Math.random() * 2);
+                    let randomFreq = activeScale.melody[Math.floor(Math.random() * activeScale.melody.length)];
+                    
+                    let sineOsc = audioCtx.createOscillator();
+                    let sineGain = audioCtx.createGain();
+                    
+                    sineOsc.type = 'sine';
+                    sineOsc.frequency.setValueAtTime(randomFreq, now + timeOffset);
+                    
+                    sineGain.gain.setValueAtTime(0, now + timeOffset);
+                    sineGain.gain.linearRampToValueAtTime(0.08, now + timeOffset + 0.8);
+                    sineGain.gain.exponentialRampToValueAtTime(0.0001, now + timeOffset + 3.5);
+                    
+                    sineOsc.connect(sineGain);
+                    sineGain.connect(masterGain);
+                    sineOsc.start(now + timeOffset);
+                    sineOsc.stop(now + timeOffset + 4.0);
+                }
+
+                // Случайная фоновая тишина (Микро-затухание фильтра на слое)
+                let filterTarget = 180 + (Math.random() * 140);
+                masterFilter.frequency.setTargetAtTime(filterTarget, now, 4);
             }
 
-            runNostalgiaWave();
-            setInterval(runNostalgiaWave, 5500);
+            // Функция полной смены музыкального трека (Каждые 2 минуты)
+            function cycleFullTrack() {
+                trackId = (trackId + 1) % scalePresets.length;
+                activeScale = scalePresets[trackId];
+                // Мгновенно вызываем перестройку слоев под новую тональность
+                mutateAudioLayers();
+            }
+
+            mutateAudioLayers();
+            layersInterval = setInterval(mutateAudioLayers, 40000); // Эволюция каждые 40 сек
+            trackInterval = setInterval(cycleFullTrack, 120000);    // Смена трека каждые 2 мин
+            
             isMusicRunning = true;
         }
 
-        document.body.addEventListener('click', startOneheartAmbient, { once: true });
-        document.body.addEventListener('touchstart', startOneheartAmbient, { once: true });
+        document.body.addEventListener('click', startGenerativeEngine, { once: true });
+        document.body.addEventListener('touchstart', startGenerativeEngine, { once: true });
 
+        // Навигация
         function switchScreen(type) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.querySelectorAll('.tab-btn').forEach(t => t.classList.remove('active'));
@@ -351,7 +406,7 @@
             renderNotesList();
         }
 
-        // ПУБЛИКАЦИЯ ЗАПИСИ (ИСПРАВЛЕНО ДУБЛИРОВАНИЕ)
+        // Публикация
         function publishNote() {
             const hField = document.getElementById('note-heading');
             const bField = document.getElementById('note-text');
@@ -372,19 +427,19 @@
                 time: timeStamp
             };
 
-            let currentDb = JSON.parse(localStorage.getItem('notes_club_db_v3')) || [];
+            let currentDb = JSON.parse(localStorage.getItem('notes_club_db_v4')) || [];
             currentDb.unshift(newNote);
             database = currentDb;
-            localStorage.setItem('notes_club_db_v3', JSON.stringify(database));
+            localStorage.setItem('notes_club_db_v4', JSON.stringify(database));
             
             hField.value = "";
             bField.value = "";
             
-            setFeedChannel('my'); // Перенаправляем на Мои Заметки
+            setFeedChannel('my');
             switchScreen('list');
         }
 
-        // ОТРИСОВКА КАРТОЧЕК С ВЫВОДОМ ИМЕНИ АВТОРА
+        // Вывод элементов
         function renderNotesList(filterQuery = "") {
             const container = document.getElementById('notes-container');
             container.innerHTML = "";
@@ -392,19 +447,15 @@
             database.forEach((note) => {
                 if (filterQuery && !note.title.toLowerCase().includes(filterQuery.toLowerCase())) return;
 
-                // УСЛОВИЕ РАЗДЕЛЕНИЯ ЛЕНТ
                 if (currentFeedChannel === 'my') {
-                    // Вкладка "Мои заметки": показывает абсолютно ВСЕ твои записи (и личные, и публичные)
                     if (note.author !== currentUser) return;
                 } else {
-                    // Вкладка "Рекомендации": показывает ВСЕ публичные записи (включая и твои собственные публичные мысли тоже!)
                     if (note.privacy !== 'public') return;
                 }
 
                 const card = document.createElement('div');
                 card.classList.add('note-item');
                 
-                // Исправлен баг клика по тексту: передаем безопасный вызов модалки
                 card.addEventListener('click', (e) => {
                     if (e.target.classList.contains('action-del')) return;
                     openNoteViewer(note);
@@ -433,14 +484,13 @@
 
         function deleteNote(id, event) {
             event.stopPropagation();
-            let currentDb = JSON.parse(localStorage.getItem('notes_club_db_v3')) || [];
+            let currentDb = JSON.parse(localStorage.getItem('notes_club_db_v4')) || [];
             currentDb = currentDb.filter(note => note.id !== id);
             database = currentDb;
-            localStorage.setItem('notes_club_db_v3', JSON.stringify(database));
+            localStorage.setItem('notes_club_db_v4', JSON.stringify(database));
             renderNotesList(document.getElementById('search-input').value);
         }
 
-        // ОТКРЫТИЕ ПОЛНОГО ТЕКСТА КАРТОЧКИ
         function openNoteViewer(note) {
             document.getElementById('v-author').innerText = `автор: @${note.author}`;
             document.getElementById('v-title').innerText = note.title;
@@ -452,6 +502,8 @@
             document.getElementById('viewer-modal').style.display = 'none';
         }
 
+        // Стартовая прорисовка (база пустая)
+        database = JSON.parse(localStorage.getItem('notes_club_db_v4')) || [];
         renderNotesList();
     </script>
 
