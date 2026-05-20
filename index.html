@@ -188,8 +188,9 @@
         </div>
     </div>
 
-    <!-- АУДИОДВИЖОК ONEHEART + DIRECT SUPABASE FETCH API -->
+    <!-- АУДИОДВИЖОК ONEHEART + ОБЛАКО SUPABASE -->
     <script>
+        // Глобальная инициализация параметров данных
         let currentUser = localStorage.getItem('nc_cloud_user') || "";
         let isPublicNote = false;
         let currentFeedChannel = "my";
@@ -256,75 +257,73 @@
 
         function startGenerativeEngine() {
             if (isMusicRunning) return;
-            try {
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                
-                masterGain = audioCtx.createGain();
-                masterGain.gain.setValueAtTime(0.35, audioCtx.currentTime);
-                
-                masterFilter = audioCtx.createBiquadFilter();
-                masterFilter.type = 'lowpass';
-                masterFilter.frequency.setValueAtTime(250, audioCtx.currentTime); 
-                
-                delayNode = audioCtx.createDelay(3.0);
-                delayNode.delayTime.setValueAtTime(0.8, audioCtx.currentTime);
-                
-                let delayFeedback = audioCtx.createGain();
-                delayFeedback.gain.setValueAtTime(0.58, audioCtx.currentTime);
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            
+            masterGain = audioCtx.createGain();
+            masterGain.gain.setValueAtTime(0.35, audioCtx.currentTime);
+            
+            masterFilter = audioCtx.createBiquadFilter();
+            masterFilter.type = 'lowpass';
+            masterFilter.frequency.setValueAtTime(250, audioCtx.currentTime); 
+            
+            delayNode = audioCtx.createDelay(3.0);
+            delayNode.delayTime.setValueAtTime(0.8, audioCtx.currentTime);
+            
+            let delayFeedback = audioCtx.createGain();
+            delayFeedback.gain.setValueAtTime(0.58, audioCtx.currentTime);
 
-                masterGain.connect(masterFilter);
-                masterFilter.connect(audioCtx.destination);
-                masterFilter.connect(delayNode);
-                delayNode.connect(delayFeedback);
-                delayFeedback.connect(masterFilter);
+            masterGain.connect(masterFilter);
+            masterFilter.connect(audioCtx.destination);
+            masterFilter.connect(delayNode);
+            delayNode.connect(delayFeedback);
+            delayFeedback.connect(masterFilter);
 
-                function mutateAudioLayers() {
-                    const now = audioCtx.currentTime;
-                    activeScale.chord.forEach((multiplier) => {
-                        let osc = audioCtx.createOscillator();
-                        let gain = audioCtx.createGain();
-                        osc.type = 'triangle'; 
-                        let flutter = (Math.random() * 2 - 1) * 0.4;
-                        osc.frequency.setValueAtTime((activeScale.root * multiplier) + flutter, now);
-                        
-                        gain.gain.setValueAtTime(0, now);
-                        gain.gain.linearRampToValueAtTime(0.25, now + 3.5); 
-                        gain.gain.exponentialRampToValueAtTime(0.0001, now + 38.5);
-                        
-                        osc.connect(gain);
-                        gain.connect(masterGain);
-                        osc.start(now);
-                        osc.stop(now + 39.0);
-                    });
+            function mutateAudioLayers() {
+                const now = audioCtx.currentTime;
+                activeScale.chord.forEach((multiplier) => {
+                    let osc = audioCtx.createOscillator();
+                    let gain = audioCtx.createGain();
+                    osc.type = 'triangle'; 
+                    let flutter = (Math.random() * 2 - 1) * 0.4;
+                    osc.frequency.setValueAtTime((activeScale.root * multiplier) + flutter, now);
+                    
+                    gain.gain.setValueAtTime(0, now);
+                    gain.gain.linearRampToValueAtTime(0.25, now + 3.5); 
+                    gain.gain.exponentialRampToValueAtTime(0.0001, now + 38.5);
+                    
+                    osc.connect(gain);
+                    gain.connect(masterGain);
+                    osc.start(now);
+                    osc.stop(now + 39.0);
+                });
 
-                    for (let i = 0; i < 5; i++) {
-                        let timeOffset = i * (4 + Math.random() * 2.5);
-                        let randomFreq = activeScale.melody[Math.floor(Math.random() * activeScale.melody.length)];
-                        let sineOsc = audioCtx.createOscillator();
-                        let sineGain = audioCtx.createGain();
-                        
-                        sineOsc.type = 'sine';
-                        sineOsc.frequency.setValueAtTime(randomFreq, now + timeOffset);
-                        sineGain.gain.setValueAtTime(0, now + timeOffset);
-                        sineGain.gain.linearRampToValueAtTime(0.09, now + timeOffset + 0.8);
-                        sineGain.gain.exponentialRampToValueAtTime(0.0001, now + timeOffset + 3.5);
-                        
-                        sineOsc.connect(sineGain);
-                        sineGain.connect(masterGain);
-                        sineOsc.start(now + timeOffset);
-                        sineOsc.stop(now + timeOffset + 4.0);
-                    }
+                for (let i = 0; i < 5; i++) {
+                    let timeOffset = i * (4 + Math.random() * 2.5);
+                    let randomFreq = activeScale.melody[Math.floor(Math.random() * activeScale.melody.length)];
+                    let sineOsc = audioCtx.createOscillator();
+                    let sineGain = audioCtx.createGain();
+                    
+                    sineOsc.type = 'sine';
+                    sineOsc.frequency.setValueAtTime(randomFreq, now + timeOffset);
+                    sineGain.gain.setValueAtTime(0, now + timeOffset);
+                    sineGain.gain.linearRampToValueAtTime(0.09, now + timeOffset + 0.8);
+                    sineGain.gain.exponentialRampToValueAtTime(0.0001, now + timeOffset + 3.5);
+                    
+                    sineOsc.connect(sineGain);
+                    sineGain.connect(masterGain);
+                    sineOsc.start(now + timeOffset);
+                    sineOsc.stop(now + timeOffset + 4.0);
                 }
+            }
 
+            mutateAudioLayers();
+            setInterval(mutateAudioLayers, 40000); 
+            setInterval(() => {
+                trackId = (trackId + 1) % scalePresets.length;
+                activeScale = scalePresets[trackId];
                 mutateAudioLayers();
-                setInterval(mutateAudioLayers, 40000); 
-                setInterval(() => {
-                    trackId = (trackId + 1) % scalePresets.length;
-                    activeScale = scalePresets[trackId];
-                    mutateAudioLayers();
-                }, 120000);    
-                isMusicRunning = true;
-            } catch(e) {}
+            }, 120000);    
+            isMusicRunning = true;
         }
 
         document.body.addEventListener('click', startGenerativeEngine, { once: true });
@@ -366,20 +365,19 @@
             
             const timeStamp = new Date().toLocaleTimeString('ru-RU', {hour: '2-digit', minute:'2-digit'}) + ' · ' + new Date().toLocaleDateString('ru-RU', {day: '2-digit', month: '2-digit'});
 
+            // СТРОГАЯ АЛФАВИТНАЯ СОРТИРОВКА КЛЮЧЕЙ ДЛЯ БЕЗОШИБОЧНОГО СИНТАКСИСА SUPABASE REST API
             const newNote = {
-                id: Date.now(), // Уникальный id для удаления
-                title: heading,
-                body: bField.value.trim(),
                 author: currentUser,
+                body: bField.value.trim(),
                 privacy: isPublicNote ? "public" : "private",
-                time: timeStamp
+                time: timeStamp,
+                title: heading
             };
 
             localMyNotes.unshift(newNote);
             localStorage.setItem('nc_local_my_db', JSON.stringify(localMyNotes));
 
             if (isPublicNote) {
-                // Отправляем в Supabase
                 fetch(API_URL, {
                     method: "POST",
                     headers: {
@@ -391,7 +389,6 @@
                     body: JSON.stringify(newNote)
                 })
                 .then(() => {
-                    // ИСПРАВЛЕННЫЙ БАГ: Сразу принудительно качаем облако, чтобы пост появился в рекомендациях!
                     fetchCloudNotes();
                 });
             }
@@ -399,7 +396,6 @@
             document.getElementById('note-heading').value = "";
             bField.value = "";
             
-            // Сразу перекидываем в рекомендации, если пост был публичным
             if (isPublicNote) {
                 setFeedChannel('feed');
             } else {
@@ -424,7 +420,6 @@
                     openNoteViewer(note);
                 };
                 
-                // Удаление теперь доступно только на твоих постах в "Моих заметках"
                 const deleteBtn = (currentFeedChannel === 'my') ? `<button class="action-del" onclick="deleteNote(${note.id || 0}, '${note.title}', event)">✕</button>` : '';
 
                 card.innerHTML = `
@@ -446,16 +441,12 @@
             renderNotesList(document.getElementById('search-input').value);
         }
 
-        // ИСПРАВЛЕННЫЙ БАГ УДАЛЕНИЯ: Заметка исчезает с экрана МГНОВЕННО
         function deleteNote(id, title, event) {
             event.stopPropagation();
-            
-            // 1. Мгновенно вырезаем из локального экрана, чтобы не ждать сервер
             localMyNotes = localMyNotes.filter(note => note.title !== title);
             localStorage.setItem('nc_local_my_db', JSON.stringify(localMyNotes));
-            renderNotesList(); // Моментальный апдейт интерфейса!
+            renderNotesList();
 
-            // 2. Отправляем скрытый фоновый запрос на удаление в Supabase
             let deleteUrl = id ? `${API_URL}?id=eq.${id}` : `${API_URL}?title=eq.${encodeURIComponent(title)}&author=eq.${encodeURIComponent(currentUser)}`;
             
             fetch(deleteUrl, {
@@ -465,15 +456,7 @@
                     "Authorization": `Bearer ${API_KEY}`
                 }
             })
-            .then(() => {
-                // Фоново обновляем массив облака
-                fetch(`${API_URL}?select=*&order=id.desc`, {
-                    method: "GET",
-                    headers: { "apikey": API_KEY, "Authorization": `Bearer ${API_KEY}` }
-                })
-                .then(res => res.json())
-                .then(data => { if (Array.isArray(data)) cloudPublicNotes = data; });
-            });
+            .then(() => fetchCloudNotes());
         }
 
         function openNoteViewer(note) {
