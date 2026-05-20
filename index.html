@@ -5,27 +5,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Notes club</title>
     
-    <!-- PWA Настройки для телефона -->
     <link rel="apple-touch-icon" href="https://icons8.com">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIk5vdGVzIGNsdWIiLAogICJzaG9ydF9uYW1lIjogIk5vdGVzIGNsdWIiLAogICJzdGFydF91cmwiOiAiLiIsCiAgImRpc3BsYXkiOiAic3RhbmGFbG9uZSIsCiAgImJhY2tncm91bmRfY29sb3IiOiAiIzAwMDAwMCIsCiAgInRoZW1lX2NvbG9yIjogIiMwMDAwMDAiLAogICJpY29ucyI6IFsKICAgIHsKICAgICAgInNyYyI6ICJodHRwczovL2ltZy5pY29uczguY29tL2lvcy1maWxsZWQvNTAwL2ZmZmZmZi9tYWNib29rLWlkZWEucG5nIiwKICAgICAgInNpemVzIjogIjUwMHg1MDAiLAogICAgICAidHlwZSI6ICJpbWFnZS9wbmciCiAgICB9CiAgXQp9">
 
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif; }
         
-        /* УГОЛЬНЫЙ ОБСИДИАН */
         body, html {
             height: 100%;
             overflow: hidden;
-            background: linear-gradient(135deg, #010101, #050506, #09090b, #030304);
+            background: linear-gradient(135deg, #010101, #040405, #08080a, #020203);
             background-size: 400% 400%;
             animation: obsidianGradient 40s ease infinite;
             display: flex;
             justify-content: center;
             align-items: center;
             user-select: none;
-            -webkit-tap-highlight-color: transparent;
         }
 
         @keyframes obsidianGradient {
@@ -34,119 +30,145 @@
             100% { background-position: 0% 50%; }
         }
 
-        /* КОНТЕЙНЕР APPLE FROSTED GLASS */
+        /* ЭКРАН ВХОДА (ОКНО АВТОРИЗАЦИИ) */
+        .auth-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #000000; z-index: 1000;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            padding: 24px; transition: opacity 0.5s ease;
+        }
+        .auth-box {
+            width: 100%; max-width: 320px;
+            background: rgba(20, 20, 25, 0.6); backdrop-filter: blur(30px);
+            padding: 30px; border-radius: 24px; border: 1px solid rgba(255,255,255,0.03);
+            text-align: center; box-shadow: 0 30px 60px rgba(0,0,0,0.8);
+        }
+        .auth-box h2 { color: #fff; font-size: 24px; margin-bottom: 8px; font-weight: 700; letter-spacing: -0.5px; }
+        .auth-box p { color: rgba(255,255,255,0.3); font-size: 13px; margin-bottom: 24px; }
+
+        /* ГЛАВНЫЙ КОНТЕЙНЕР ПРИЛОЖЕНИЯ */
         .glass-container {
-            width: 100%;
-            max-width: 380px;
-            height: 85vh;
-            max-height: 720px;
-            background: rgba(12, 12, 14, 0.4);
-            backdrop-filter: blur(40px) saturate(200%);
+            width: 100%; max-width: 380px; height: 85vh; max-height: 720px;
+            background: rgba(12, 12, 14, 0.4); backdrop-filter: blur(40px) saturate(200%);
             -webkit-backdrop-filter: blur(40px) saturate(200%);
-            border-radius: 28px;
-            border: 1px solid rgba(255, 255, 255, 0.03);
-            padding: 24px;
-            display: flex;
-            flex-direction: column;
+            border-radius: 28px; border: 1px solid rgba(255, 255, 255, 0.03);
+            padding: 24px; display: flex; flex-direction: column;
             box-shadow: 0 40px 100px rgba(0, 0, 0, 0.95), inset 0 1px 0 rgba(255,255,255,0.01);
-            margin: 16px;
+            margin: 16px; position: relative;
         }
 
-        /* ТОП ПАНЕЛЬ */
-        .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 26px; }
-        .logo { color: #ffffff; font-size: 21px; font-weight: 700; letter-spacing: -0.5px; opacity: 0.95; }
+        .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .logo { color: #ffffff; font-size: 21px; font-weight: 700; letter-spacing: -0.5px; }
         
-        /* ВКЛАДКИ */
         .tabs { display: flex; background: rgba(255,255,255,0.02); padding: 3px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.01); }
         .tab-btn {
-            padding: 8px 14px;
-            background: none;
-            border: none;
-            color: rgba(255,255,255,0.35);
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-            border-radius: 9px;
-            transition: all 0.2s ease;
+            padding: 8px 14px; background: none; border: none;
+            color: rgba(255,255,255,0.35); font-size: 13px; font-weight: 600;
+            cursor: pointer; border-radius: 9px; transition: all 0.2s ease;
         }
         .tab-btn.active { background: rgba(255,255,255,0.07); color: #ffffff; }
 
-        /* ИНПУТЫ ТЕКСТА */
+        /* ВНУТРЕННИЙ ПОДТУЛБАР ДЛЯ ЛЕНТЫ (Мои / Рекомендации) */
+        .sub-bar { display: flex; gap: 8px; margin-bottom: 16px; }
+        .sub-tab-btn {
+            flex: 1; padding: 10px; background: rgba(255,255,255,0.015);
+            border: 1px solid rgba(255,255,255,0.03); border-radius: 12px;
+            color: rgba(255,255,255,0.4); font-size: 12px; font-weight: 600;
+            cursor: pointer; transition: all 0.2s ease; text-align: center;
+        }
+        .sub-tab-btn.active { background: rgba(255,255,255,0.06); color: #fff; border-color: rgba(255,255,255,0.1); }
+
+        /* ИНПУТЫ И ЭЛЕМЕНТЫ УПРАВЛЕНИЯ */
         .glass-input {
-            width: 100%;
-            padding: 15px 16px;
-            background: rgba(255, 255, 255, 0.015);
-            border: 1px solid rgba(255, 255, 255, 0.03);
-            border-radius: 14px;
-            color: #ffffff;
-            font-size: 15px;
-            outline: none;
-            transition: all 0.25s ease;
-            margin-bottom: 12px;
+            width: 100%; padding: 15px 16px; background: rgba(255, 255, 255, 0.015);
+            border: 1px solid rgba(255, 255, 255, 0.03); border-radius: 14px;
+            color: #ffffff; font-size: 15px; outline: none; transition: all 0.25s ease; margin-bottom: 12px;
         }
         .glass-input::placeholder { color: rgba(255,255,255,0.18); }
         .glass-input:focus { background: rgba(255, 255, 255, 0.03); border-color: rgba(255,255,255,0.1); }
+        .textarea-input { flex: 1; min-height: 160px; resize: none; margin-bottom: 16px; }
 
-        .textarea-input { flex: 1; min-height: 200px; resize: none; margin-bottom: 20px; }
+        /* ПЕРЕКЛЮЧАТЕЛЬ ПУБЛИЧНОСТИ (Приватная / Публичная) */
+        .privacy-selector { display: flex; gap: 8px; margin-bottom: 16px; }
+        .privacy-btn {
+            flex: 1; padding: 12px; background: rgba(255,255,255,0.015);
+            border: 1px solid rgba(255,255,255,0.03); border-radius: 12px;
+            color: rgba(255,255,255,0.3); font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s;
+        }
+        .privacy-btn.active { background: rgba(255,255,255,0.06); color: #ffffff; border-color: rgba(255,255,255,0.1); }
 
-        /* СТИЛЬНАЯ БЕЛАЯ КНОПКА APPLE */
         .main-btn {
-            width: 100%;
-            padding: 16px;
-            background: #ffffff;
-            border: none;
-            border-radius: 14px;
-            color: #000000;
-            font-size: 15px;
-            font-weight: 700;
-            letter-spacing: -0.2px;
-            cursor: pointer;
-            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            width: 100%; padding: 16px; background: #ffffff; border: none;
+            border-radius: 14px; color: #000000; font-size: 15px; font-weight: 700;
+            letter-spacing: -0.2px; cursor: pointer; transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
         }
         .main-btn:active { transform: scale(0.97); opacity: 0.9; }
 
-        /* ОКОННЫЕ СИСТЕМЫ */
-        .screen { display: none; flex-direction: column; flex: 1; }
+        /* СИСТЕМА ОКОН И СПИСКОВ */
+        .screen { display: none; flex-direction: column; flex: 1; min-height: 0; }
         .screen.active { display: flex; }
-
-        /* ПОИСК ТЕЛЕГРАМ */
-        .search-container { position: relative; margin-bottom: 16px; }
-        .search-input { margin-bottom: 0; padding-left: 16px; background: rgba(255,255,255,0.02); }
-
-        /* ЛЕНТА КАРТОЧЕК */
         .notes-list { flex: 1; overflow-y: auto; padding-right: 2px; scroll-behavior: smooth; }
         .notes-list::-webkit-scrollbar { width: 0px; }
 
+        /* ПРЕМИАЛЬНАЯ КАРТОЧКА МЫСЛИ */
         .note-item {
-            background: rgba(255, 255, 255, 0.01);
-            border: 1px solid rgba(255, 255, 255, 0.02);
-            padding: 16px;
-            border-radius: 16px;
-            color: #ffffff;
-            margin-bottom: 12px;
-            position: relative;
-            animation: appleSpawn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-            transition: all 0.2s ease;
+            background: rgba(255, 255, 255, 0.01); border: 1px solid rgba(255, 255, 255, 0.02);
+            padding: 16px; border-radius: 16px; color: #ffffff; margin-bottom: 12px;
+            position: relative; animation: appleSpawn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            transition: all 0.2s ease; cursor: pointer;
         }
         .note-item:hover { background: rgba(255, 255, 255, 0.015); border-color: rgba(255,255,255,0.04); }
+        @keyframes appleSpawn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
 
-        @keyframes appleSpawn { 
-            from { opacity: 0; transform: translateY(8px); filter: blur(2px); } 
-            to { opacity: 1; transform: translateY(0); filter: blur(0); } 
-        }
-
-        .note-title { font-weight: 600; font-size: 15.5px; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; letter-spacing: -0.2px; }
-        .note-desc { font-size: 13.5px; color: rgba(255, 255, 255, 0.45); word-break: break-word; line-height: 1.45; }
+        .note-title { font-weight: 600; font-size: 15.5px; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; }
+        .note-desc { font-size: 13.5px; color: rgba(255, 255, 255, 0.45); word-break: break-word; line-height: 1.45; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
         .note-meta { font-size: 10px; color: rgba(255,255,255,0.15); margin-top: 12px; display: flex; justify-content: space-between; align-items: center; }
+        .note-author { font-weight: 600; color: rgba(255,255,255,0.3); }
 
-        .action-del { cursor: pointer; color: rgba(255,255,255,0.15); font-size: 11px; background: none; border: none; outline: none; transition: color 0.2s; }
+        .action-del { cursor: pointer; color: rgba(255,255,255,0.15); font-size: 11px; background: none; border: none; outline: none; }
         .action-del:hover { color: #ff453a; }
+
+        /* ПОЛНОЭКРАННОЕ МОДАЛЬНОЕ ОКНО ДЛЯ ПРОСМОТРА ЗАМЕТКИ */
+        .viewer-modal {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: #09090b; border-radius: 28px; padding: 24px;
+            display: none; flex-direction: column; z-index: 50; animation: modalFade 0.25s ease;
+        }
+        @keyframes modalFade { from { opacity: 0; transform: scale(0.98); } to { opacity: 1; transform: scale(1); } }
+        .viewer-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+        .viewer-close { background: none; border: none; color: #fff; font-size: 20px; cursor: pointer; opacity: 0.5; }
+        .viewer-close:hover { opacity: 1; }
+        .viewer-title { color: #fff; font-size: 22px; font-weight: 700; margin-bottom: 12px; }
+        .viewer-author { font-size: 12px; color: rgba(255,255,255,0.3); margin-bottom: 16px; font-weight: 600; }
+        .viewer-body { color: rgba(255,255,255,0.7); font-size: 15px; line-height: 1.6; overflow-y: auto; flex: 1; word-break: break-word; }
     </style>
 </head>
 <body>
 
+    <!-- ОКНО РЕГИСТРАЦИИ / ВХОДА -->
+    <div class="auth-screen" id="auth-screen">
+        <div class="auth-box">
+            <h2>Notes club</h2>
+            <p>Вход в пространство мыслей</p>
+            <input type="text" id="auth-username" class="glass-input" placeholder="Ваше имя...">
+            <input type="password" id="auth-password" class="glass-input" placeholder="Пароль...">
+            <button class="main-btn" onclick="handleLogin()">Войти изящно</button>
+        </div>
+    </div>
+
+    <!-- ОСНОВНОЙ МОДУЛЬ ПРИЛОЖЕНИЯ -->
     <div class="glass-container">
-        <!-- Шапка -->
+        <!-- Детальный просмотр заметки -->
+        <div class="viewer-modal" id="viewer-modal">
+            <div class="viewer-header">
+                <div class="viewer-author" id="v-author">Автор: @user</div>
+                <button class="viewer-close" onclick="closeNoteViewer()">✕</button>
+            </div>
+            <div class="viewer-title" id="v-title">Название мысли</div>
+            <div class="viewer-body" id="v-body">Полный текст...</div>
+        </div>
+
+        <!-- Шапка верхнего уровня -->
         <div class="top-bar">
             <div class="logo">Notes club</div>
             <div class="tabs">
@@ -155,128 +177,167 @@
             </div>
         </div>
 
-        <!-- ОКНО 1: НАПИСАТЬ ТЕКСТ -->
+        <!-- СЦЕНА 1: НАПИСАТЬ ЗАПИСЬ -->
         <div id="screen-write" class="screen active">
             <input type="text" id="note-heading" class="glass-input" placeholder="Название мысли...">
             <textarea id="note-text" class="glass-input textarea-input" placeholder="Начните писать здесь..."></textarea>
+            
+            <div class="privacy-selector">
+                <button class="privacy-btn active" id="p-btn-private" onclick="setPrivacy(false)">Личная</button>
+                <button class="privacy-btn" id="p-btn-public" onclick="setPrivacy(true)">Публичная</button>
+            </div>
+            
             <button class="main-btn" onclick="publishNote()">Поделиться мыслью</button>
         </div>
 
-        <!-- ОКНО 2: ЛЕНТА МЫСЛЕЙ И ПОИСК -->
+        <!-- СЦЕНА 2: ЛЕНТА МЫСЛЕЙ (ДВУХКАНАЛЬНАЯ С ПОИСКОМ) -->
         <div id="screen-list" class="screen">
+            <!-- Кнопки "Мои заметки" и "Рекомендации" -->
+            <div class="sub-bar">
+                <button class="sub-tab-btn active" id="sub-tab-my" onclick="setFeedChannel('my')">Мои заметки</button>
+                <button class="sub-tab-btn" id="sub-tab-feed" onclick="setFeedChannel('feed')">Рекомендации</button>
+            </div>
+            
             <div class="search-container">
                 <input type="text" id="search-input" class="glass-input search-input" placeholder="Поиск по названию..." oninput="liveSearch()">
             </div>
+            
             <div id="notes-container" class="notes-list"></div>
         </div>
     </div>
 
-    <!-- УЛЬТРАБЫСТРЫЙ ДВИЖОК JS + ПРОЦЕДУРНЫЙ СИНТЕЗАТОР ONEHEART NOSTALGIA -->
+    <!-- СКРИПТОВЫЙ ЯДЕРНЫЙ ИНЖЕКТОР (ЧИСТЫЙ JS) -->
     <script>
         let audioCtx = null;
         let isMusicRunning = false;
-        let database = JSON.parse(localStorage.getItem('notes_club_db')) || [];
+        let currentUser = localStorage.getItem('notes_club_user') || "";
+        
+        // Системные переменные логики данных
+        let isPublicNote = false;
+        let currentFeedChannel = "my"; // 'my' или 'feed'
 
-        // ВЫСОКОТЕХНОЛОГИЧНЫЙ СИНТЕЗАТОР НОСТАЛЬГИЧЕСКОГО ЛОУ-ФАЙ ЭМБИЕНТА
+        // 1. ИСПРАВЛЕННЫЙ БАГ ХРАНИЛИЩА (Чтение базы без затирания) [1]
+        let database = JSON.parse(localStorage.getItem('notes_club_db_v2'));
+        if (!database || !Array.isArray(database)) {
+            // Демо-данные рекомендаций от других авторов, чтобы лента не была пустой
+            database = [
+                { id: 1, title: "Эстетика осени", body: "Капли дождя бьют по стеклу окон кофейни, растворяясь в неоновом свете вечернего города. В такие моменты хочется просто молчать.", author: "Arseny", privacy: "public", time: "18:24 · 19.05" },
+                { id: 2, title: "Звуки тишины", body: "Эмбиент-музыка Oneheart помогает сфокусироваться на внутреннем мире. Ностальгия — это не грусть, это память о прекрасном.", author: "Sofia_Ambient", privacy: "public", time: "12:05 · 18.05" },
+                { id: 3, title: "Утренний Токио", body: "Пустые улицы, туман над линиями метро и едва заметный розоватый рассвет. Город еще спит, сохраняя свои тайны.", author: "Neon_Dreamer", privacy: "public", time: "05:11 · 15.05" }
+            ];
+            localStorage.setItem('notes_club_db_v2', JSON.stringify(database));
+        }
+
+        // Проверка авторизации на старте
+        if (currentUser) {
+            document.getElementById('auth-screen').style.display = 'none';
+        }
+
+        function handleLogin() {
+            const user = document.getElementById('auth-username').value.trim();
+            const pass = document.getElementById('auth-password').value.trim();
+            if (!user || !pass) return;
+            
+            currentUser = user;
+            localStorage.setItem('notes_club_user', user);
+            document.getElementById('auth-screen').style.opacity = '0';
+            setTimeout(() => { document.getElementById('auth-screen').style.display = 'none'; }, 500);
+            
+            // Триггер запуска звука при логине
+            startOneheartAmbient();
+        }
+
+        // 2. ИСТИННЫЙ СИНТЕЗАТОР ONEHEART NOSTALGIA С ТРЕУГОЛЬНЫМИ ВОЛНАМИ [1]
         function startOneheartAmbient() {
             if (isMusicRunning) return;
             
             audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             
-            // 1. Мастер-фильтр низких частот (Лоу-пасс для глухого глубокого звука)
+            // Глубокий аналоговый срез (Лоу-пасс на 260 Гц для глухоты и бархатистости)
             let masterFilter = audioCtx.createBiquadFilter();
             masterFilter.type = 'lowpass';
-            masterFilter.frequency.setValueAtTime(320, audioCtx.currentTime); // Срезаем все резкие частоты
+            masterFilter.frequency.setValueAtTime(260, audioCtx.currentTime);
             masterFilter.connect(audioCtx.destination);
 
-            // 2. Узел пространственного эхо (Delay)
+            // Реверберационный Delay-эффект объемных хвостов эха
             let delayNode = audioCtx.createDelay(3.0);
             delayNode.delayTime.setValueAtTime(0.8, audioCtx.currentTime);
             
             let delayGain = audioCtx.createGain();
-            delayGain.gain.setValueAtTime(0.45, audioCtx.currentTime); // Долгие гулкие хвосты реверберации
+            delayGain.gain.setValueAtTime(0.5, audioCtx.currentTime); // Хвосты эха длиннее и громче
             
             masterFilter.connect(delayNode);
             delayNode.connect(delayGain);
-            delayGain.connect(masterFilter); // Зацикливаем эхо
+            delayGain.connect(masterFilter);
 
-            // 3. ГЕНЕРАТОР ВИНИЛОВОГО ШУМА И АНАЛОГОВОГО ТЕПЛА КОДОМ
-            function createVinylNoise() {
+            // Полноценный генератор аналогового шума ленты
+            function initTapeHiss() {
                 let bufferSize = 2 * audioCtx.sampleRate,
                     noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate),
                     output = noiseBuffer.getChannelData(0);
-                for (let i = 0; i < bufferSize; i++) {
-                    output[i] = Math.random() * 2 - 1;
-                }
-                let whiteNoise = audioCtx.createBufferSource();
-                whiteNoise.buffer = noiseBuffer;
-                whiteNoise.loop = true;
+                for (let i = 0; i < bufferSize; i++) { output[i] = Math.random() * 2 - 1; }
+                let hissSource = audioCtx.createBufferSource();
+                hissSource.buffer = noiseBuffer;
+                hissSource.loop = true;
 
-                let noiseFilter = audioCtx.createBiquadFilter();
-                noiseFilter.type = 'bandpass';
-                noiseFilter.frequency.setValueAtTime(600, audioCtx.currentTime);
-                noiseFilter.Q.setValueAtTime(1.0, audioCtx.currentTime);
+                let hissFilter = audioCtx.createBiquadFilter();
+                hissFilter.type = 'bandpass';
+                hissFilter.frequency.setValueAtTime(500, audioCtx.currentTime);
 
-                let noiseGain = audioCtx.createGain();
-                noiseGain.gain.setValueAtTime(0.015, audioCtx.currentTime); // Тонкий, едва заметный шум
+                let hissGain = audioCtx.createGain();
+                hissGain.gain.setValueAtTime(0.012, audioCtx.currentTime);
 
-                whiteNoise.connect(noiseFilter);
-                noiseFilter.connect(noiseGain);
-                noiseGain.connect(audioCtx.destination);
-                whiteNoise.start();
+                hissSource.connect(hissFilter);
+                hissFilter.connect(hissGain);
+                hissGain.connect(audioCtx.destination);
+                hissSource.start();
             }
-            createVinylNoise();
+            initTapeHiss();
 
-            // Ностальгические минорные аккорды (Палитра Oneheart - "Snowfall" стиль)
-            const nostalgiaChords = [
-                [55.00, 110.00, 146.83, 164.81], // Asiz/Am Глубокая меланхолия
-                [65.41, 130.81, 174.61, 196.00], // Fmaj7 Воздушная грусть
-                [48.99, 97.99, 130.81, 146.83]   // Cmaj Саунд-дизайн одиночества
+            // Знаменитые ностальгические минорные палитры Oneheart
+            const chords = [
+                [55.00, 110.00, 146.83, 164.81], // Основной аккорд грусти
+                [65.41, 130.81, 174.61, 196.00]  // Растворение в тумане
             ];
 
-            function spawnLoFiPad() {
-                const currentChord = nostalgiaChords[Math.floor(Math.random() * nostalgiaChords.length)];
-                
-                currentChord.forEach((freq, idx) => {
-                    // Используем треугольную волну (triangle) для мягкого аналогового тона пэдов
+            function runNostalgiaWave() {
+                const activeChord = chords[Math.floor(Math.random() * chords.length)];
+                activeChord.forEach(freq => {
                     let osc = audioCtx.createOscillator();
                     let gainNode = audioCtx.createGain();
                     
+                    // Треугольная волна даёт мягкий Lo-Fi Pad тон [1]
                     osc.type = 'triangle';
                     
-                    // ЭФФЕКТ ДЕТЮНИНГА (Микро-плавание частоты для эффекта старой кассеты)
-                    let tapeFlutter = (Math.random() * 2 - 1) * 0.4;
-                    osc.frequency.setValueAtTime(freq + tapeFlutter, audioCtx.currentTime);
+                    // Имитация детонации магнитофонной ленты (Tape Flutter)
+                    let tapeDrift = (Math.random() * 2 - 1) * 0.35;
+                    osc.frequency.setValueAtTime(freq + tapeDrift, audioCtx.currentTime);
                     
-                    // Плавная атака и долгое затухание звуковой волны (ГРОМКОСТЬ ВЫКРУЧЕНА НА 0.16)
+                    // ГРОМКОСТЬ ВЫКРУЧЕНА НА МАКСИМУМ (0.22)
                     gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
-                    gainNode.gain.linearRampToValueAtTime(0.16, audioCtx.currentTime + 2.0); // Нарастание пэда
-                    gainNode.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 5.5); // Медленный уход в эхо
+                    gainNode.gain.linearRampToValueAtTime(0.22, audioCtx.currentTime + 2.5); // Медленная атака пэда
+                    gainNode.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 5.8);
                     
                     osc.connect(gainNode);
                     gainNode.connect(masterFilter);
-                    
                     osc.start();
-                    osc.stop(audioCtx.currentTime + 5.6);
+                    osc.stop(audioCtx.currentTime + 5.9);
                 });
             }
 
-            spawnLoFiPad();
-            setInterval(spawnLoFiPad, 5000); // Смена волн каждые 5 секунд
-            
+            runNostalgiaWave();
+            setInterval(runNostalgiaWave, 5500); // Плавная смена волн
             isMusicRunning = true;
         }
 
-        // Авто-включение музыки без кнопок при первом же тапе по экрану
         document.body.addEventListener('click', startOneheartAmbient, { once: true });
         document.body.addEventListener('touchstart', startOneheartAmbient, { once: true });
 
-        // Навигация окон
-        function switchScreen(screenType) {
+        function switchScreen(type) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.querySelectorAll('.tab-btn').forEach(t => t.classList.remove('active'));
             
-            if (screenType === 'write') {
+            if (type === 'write') {
                 document.getElementById('screen-write').classList.add('active');
                 document.getElementById('tab-write').classList.add('active');
             } else {
@@ -286,7 +347,22 @@
             }
         }
 
-        // Публикация заметок
+        // Выбор приватности перед отправкой мысли
+        function setPrivacy(isPublic) {
+            isPublicNote = isPublic;
+            document.getElementById('p-btn-private').classList.toggle('active', !isPublic);
+            document.getElementById('p-btn-public').classList.toggle('active', isPublic);
+        }
+
+        // Переключение каналов Ленты (Мои / Рекомендации)
+        function setFeedChannel(channel) {
+            currentFeedChannel = channel;
+            document.getElementById('sub-tab-my').classList.toggle('active', channel === 'my');
+            document.getElementById('sub-tab-feed').classList.toggle('active', channel === 'feed');
+            renderNotesList();
+        }
+
+        // 3. ДОБАВЛЕНИЕ МЫСЛИ БЕЗ УДАЛЕНИЯ СТАРЫХ
         function publishNote() {
             const hField = document.getElementById('note-heading');
             const bField = document.getElementById('note-text');
@@ -299,40 +375,61 @@
             const timeStamp = new Date().toLocaleTimeString('ru-RU', {hour: '2-digit', minute:'2-digit'}) + ' · ' + new Date().toLocaleDateString('ru-RU', {day: '2-digit', month: '2-digit'});
 
             const newNote = {
+                id: Date.now(), // Уникальный ключ id
                 title: heading,
                 body: bField.value.trim(),
+                author: currentUser || "Аноним",
+                privacy: isPublicNote ? "public" : "private",
                 time: timeStamp
             };
 
-            database.unshift(newNote);
-            localStorage.setItem('notes_club_db', JSON.stringify(database));
+            // Читаем свежую базу, добавляем элемент в начало массива, перезаписываем
+            let currentDb = JSON.parse(localStorage.getItem('notes_club_db_v2')) || [];
+            currentDb.unshift(newNote);
+            database = currentDb;
+            localStorage.setItem('notes_club_db_v2', JSON.stringify(database));
             
             hField.value = "";
             bField.value = "";
             
+            setFeedChannel('my'); // Сразу перекидываем в Мои Заметки
             switchScreen('list');
         }
 
-        // Вывод ленты мыслей
+        // 4. УМНАЯ ОТРИСОВКА И ТЕЛЕГРАМ-ПОИСК ПО НАЗВАНИЮ
         function renderNotesList(filterQuery = "") {
             const container = document.getElementById('notes-container');
             container.innerHTML = "";
 
-            database.forEach((note, index) => {
-                // Живой поиск по названию
-                if (filterQuery && !note.title.toLowerCase().includes(filterQuery.toLowerCase())) {
-                    return; 
+            database.forEach((note) => {
+                // Живой поиск по названию (заголовку)
+                if (filterQuery && !note.title.toLowerCase().includes(filterQuery.toLowerCase())) return;
+
+                // Разделение на каналы:
+                if (currentFeedChannel === 'my') {
+                    // Вкладка "Мои": только те, у кого совпадает имя автора
+                    if (note.author !== currentUser) return;
+                } else {
+                    // Вкладка "Рекомендации": только публичные мысли других пользователей
+                    if (note.privacy !== 'public' || note.author === currentUser) return;
                 }
 
                 const card = document.createElement('div');
                 card.classList.add('note-item');
+                // Клик по карточке открывает её на весь экран
+                card.setAttribute('onclick', `openNoteViewer(${JSON.stringify(note).replace(/"/g, '&quot;')})`);
+                
+                // Кнопка удаления видна только на собственных заметках автора
+                const deleteBtn = note.author === currentUser ? `<button class="action-del" onclick="deleteNote(${note.id}, event)">✕</button>` : '';
+
                 card.innerHTML = `
                     <div class="note-title">
                         <span>${note.title}</span>
-                        <button class="action-del" onclick="deleteNote(${index}, event)">✕</button>
+                        ${deleteBtn}
                     </div>
                     <div class="note-desc">${note.body}</div>
                     <div class="note-meta">
+                        <span class="note-author">@${note.author} ${note.privacy === 'private' ? '🔒' : ''}</span>
                         <span>${note.time}</span>
                     </div>
                 `;
@@ -341,15 +438,29 @@
         }
 
         function liveSearch() {
-            const query = document.getElementById('search-input').value;
-            renderNotesList(query);
+            renderNotesList(document.getElementById('search-input').value);
         }
 
-        function deleteNote(index, event) {
+        // Точечное удаление по уникальному ID
+        function deleteNote(id, event) {
             event.stopPropagation();
-            database.splice(index, 1);
-            localStorage.setItem('notes_club_db', JSON.stringify(database));
+            let currentDb = JSON.parse(localStorage.getItem('notes_club_db_v2')) || [];
+            currentDb = currentDb.filter(note => note.id !== id);
+            database = currentDb;
+            localStorage.setItem('notes_club_db_v2', JSON.stringify(database));
             renderNotesList(document.getElementById('search-input').value);
+        }
+
+        // 5. ПОЛНОЭКРАННЫЙ СТЕКЛЯННЫЙ ПРОСМОТР СОДЕРЖИМОГО ЗАМЕТКИ
+        function openNoteViewer(note) {
+            document.getElementById('v-author').innerText = `Автор: @${note.author}`;
+            document.getElementById('v-title').innerText = note.title;
+            document.getElementById('v-body').innerText = note.body;
+            document.getElementById('viewer-modal').style.display = 'flex';
+        }
+
+        function closeNoteViewer() {
+            document.getElementById('viewer-modal').style.display = 'none';
         }
 
         renderNotesList();
