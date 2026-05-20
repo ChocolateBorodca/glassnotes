@@ -9,7 +9,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
-    <!-- Подключаем официальный безопасный клиент базы данных Supabase -->
+    <!-- Официальный клиент Supabase для вечного хранения в облаке -->
     <script src="https://jsdelivr.net"></script>
 
     <style>
@@ -105,7 +105,7 @@
         .note-item {
             background: rgba(255, 255, 255, 0.008) !important; border: 1px solid rgba(255, 255, 255, 0.015) !important;
             padding: 16px; border-radius: 16px; color: #ffffff; margin-bottom: 12px; position: relative;
-            animation: appleSpawn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards; transition: all 0.2s ease; cursor: pointer;
+            animation: appleSpawn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards; transition: all 0.2s ease; cursor: pointer; display: block;
         }
         .note-item:hover { background: rgba(255, 255, 255, 0.015) !important; border-color: rgba(255,255,255,0.04) !important; }
         @keyframes appleSpawn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
@@ -148,7 +148,6 @@
 
     <!-- ОСНОВНОЙ МОДУЛЬ -->
     <div class="glass-container">
-        <!-- Детальный просмотр карточки -->
         <div class="viewer-modal" id="viewer-modal">
             <div class="viewer-header">
                 <div class="viewer-author" id="v-author">автор: @user</div>
@@ -166,7 +165,6 @@
             </div>
         </div>
 
-        <!-- ОКНО ПУБЛИКАЦИИ -->
         <div id="screen-write" class="screen active">
             <input type="text" id="note-heading" class="glass-input" placeholder="Название мысли...">
             <textarea id="note-text" class="glass-input textarea-input" placeholder="Начните писать здесь..."></textarea>
@@ -179,7 +177,6 @@
             <button class="main-btn" onclick="publishNote()">Поделиться мыслью</button>
         </div>
 
-        <!-- ОКНО ЛЕНТЫ -->
         <div id="screen-list" class="screen">
             <div class="sub-bar">
                 <button class="sub-tab-btn active" id="sub-tab-my" onclick="setFeedChannel('my')">Мои заметки</button>
@@ -194,27 +191,29 @@
         </div>
     </div>
 
-    <!-- КРИСТАЛЬНО ЧИСТЫЙ АЛГОРИТМИЧЕСКИЙ AUDIO ДВИЖОК ONEHEART + СЕТЕВОЙ БЭКЕНД SUPABASE -->
+    <!-- КРИСТАЛЬНО ЧИСТЫЙ АЛГОРИТМИЧЕСКИЙ AUDIO ДВИЖОК ONEHEART + ОБЛАКО SUPABASE -->
     <script>
-        // Инициализация безопасного, изолированного инстанса глобального облака Supabase
-        const _sbUrl = "https://supabase.co";
-        const _sbKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndidGZtZ29yYmdwYWpwa3NnYnlvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTYyMzg4MDAsImV4cCI6MjAzMTgxODgwMH0.bHhCcj_mF4Z2fW12b1A0XzNfXzVfXzdfXzlfXzExXzEzXzE1"; 
-        const supabase = window.supabase.createClient(_sbUrl, _sbKey);
+        // ==========================================
+        // 🛠️ НАСТРОЙКА SUPABASE (ВСТАВЬ СВОИ ДАННЫЕ СЮДА)
+        // ==========================================
+        const SUPABASE_URL = "ВСТАВЬ_СЮДА_URL_ПРОЕКТА";
+        const SUPABASE_ANON_KEY = "ВСТАВЬ_СЮДА_ANON_KEY_КЛЮЧ";
+        // ==========================================
+
+        const supabase = (SUPABASE_URL !== "ВСТАВЬ_СЮДА_URL_ПРОЕКТА") ? supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
 
         let audioCtx = null;
         let isMusicRunning = false;
         let currentUser = localStorage.getItem('nc_cloud_user') || "";
-        let currentPass = localStorage.getItem('nc_cloud_pass') || "";
         
         let isPublicNote = false;
         let currentFeedChannel = "my";
-        
-        let localPrivateNotes = JSON.parse(localStorage.getItem('nc_local_private_db')) || [];
-        let globalFeedNotes = [];
+        let localMyNotes = JSON.parse(localStorage.getItem('nc_local_my_db')) || []; // Твои личные заметки
+        let cloudPublicNotes = []; // Публичные заметки из облака
 
         if (currentUser) {
             document.getElementById('auth-screen').style.display = 'none';
-            fetchGlobalRecommendations();
+            fetchCloudNotes();
         }
 
         function handleLogin() {
@@ -223,28 +222,26 @@
             if (!user || !pass) return;
             
             currentUser = user;
-            currentPass = pass;
             localStorage.setItem('nc_cloud_user', user);
-            localStorage.setItem('nc_cloud_pass', pass);
             document.getElementById('auth-screen').style.opacity = '0';
             setTimeout(() => { document.getElementById('auth-screen').style.display = 'none'; }, 500);
             
-            fetchGlobalRecommendations();
+            fetchCloudNotes();
             startGenerativeEngine();
         }
 
-        // ЗАГРУЗКА ВСЕХ ПУБЛИЧНЫХ ПОСТОВ МИРА ИЗ ВЕЧНОЙ ОБЛАЧНОЙ БАЗЫ ДАННЫХ
-        async function fetchGlobalRecommendations() {
-            try {
-                const { data, error } = await supabase
-                    .from('notes_club_feed')
-                    .select('*')
-                    .order('created_at', { ascending: false });
-                
-                if (error) throw error;
-                globalFeedNotes = data || [];
+        // ЧТЕНИЕ ПУБЛИЧНЫХ ЗАПИСЕЙ ИЗ ВЕЧНОГО ОБЛАКА
+        async function fetchCloudNotes() {
+            if (!supabase) return;
+            const { data, error } = await supabase
+                .from('notes')
+                .select('*')
+                .order('created_at', { ascending: false });
+            
+            if (!error && data) {
+                cloudPublicNotes = data;
                 renderNotesList();
-            } catch(e) { console.log("База данных временно в режиме офлайн."); }
+            }
         }
 
         // КРИСТАЛЬНО ЧИСТЫЙ СИНТЕЗАТОР ONEHEART
@@ -268,7 +265,7 @@
             
             masterFilter = audioCtx.createBiquadFilter();
             masterFilter.type = 'lowpass';
-            masterFilter.frequency.setValueAtTime(240, audioCtx.currentTime); 
+            masterFilter.frequency.setValueAtTime(250, audioCtx.currentTime); 
             
             delayNode = audioCtx.createDelay(3.0);
             delayNode.delayTime.setValueAtTime(0.8, audioCtx.currentTime);
@@ -346,7 +343,7 @@
             } else {
                 document.getElementById('screen-list').classList.add('active');
                 document.getElementById('tab-list').classList.add('active');
-                fetchGlobalRecommendations(); // Автообновление глобальной ленты при переходе
+                fetchCloudNotes(); // Обновляем облако при открытии ленты
             }
         }
 
@@ -363,33 +360,32 @@
             renderNotesList();
         }
 
-        // НАДЕЖНАЯ ПУБЛИКАЦИЯ
+        // ОПУБЛИКОВАТЬ МЫСЛЬ В ОБЛАКО
         async function publishNote() {
             const hField = document.getElementById('note-heading');
             const bField = document.getElementById('note-text');
             if (bField.value.trim() === "") return;
             
             let heading = hField.value.trim();
-            if (!heading) heading = `Мысль #${localPrivateNotes.length + globalFeedNotes.length + 1}`;
+            if (!heading) heading = `Мысль #${localMyNotes.length + 1}`;
             
             const timeStamp = new Date().toLocaleTimeString('ru-RU', {hour: '2-digit', minute:'2-digit'}) + ' · ' + new Date().toLocaleDateString('ru-RU', {day: '2-digit', month: '2-digit'});
 
-            const noteData = {
+            const newNote = {
                 title: heading,
                 body: bField.value.trim(),
                 author: currentUser,
-                author_pass_hash: currentPass, // Защитный ключ-пароль автора для будущих удалений
                 privacy: isPublicNote ? "public" : "private",
                 time: timeStamp
             };
 
-            if (isPublicNote) {
-                // Если мысль публичная — отправляем её навечно в глобальную базу данных Supabase
-                await supabase.from('notes_club_feed').insert([noteData]);
-            } else {
-                // Если личная — сохраняем строго внутри телефона
-                localPrivateNotes.unshift(noteData);
-                localStorage.setItem('nc_local_private_db', JSON.stringify(localPrivateNotes));
+            // 1. Все твои мысли (и личные, и публичные) сохраняются локально у тебя
+            localMyNotes.unshift(newNote);
+            localStorage.setItem('nc_local_my_db', JSON.stringify(localMyNotes));
+
+            // 2. Если заметка ПУБЛИЧНАЯ, отправляем её на вечное хранение в Supabase
+            if (isPublicNote && supabase) {
+                await supabase.from('notes').insert([newNote]);
             }
             
             hField.value = "";
@@ -399,39 +395,26 @@
             switchScreen('list');
         }
 
-        // УМНЫЙ ОДНОВРЕМЕННЫЙ РЕНДЕРИНГ ЛЕНТ
+        // РЕНДЕРИНГ ЛЕНТЫ С УЧЕТОМ ОБЛАКА
         function renderNotesList(filterQuery = "") {
             const container = document.getElementById('notes-container');
             container.innerHTML = "";
 
-            // Формируем список для отображения в зависимости от вкладки
-            let renderPool = [];
-            
-            if (currentFeedChannel === 'my') {
-                // Вкладка «Мои заметки»: собирает твои локальные личные посты + фильтрует из облака твои публичные посты
-                let myCloudPublic = globalFeedNotes.filter(n => n.author === currentUser);
-                renderPool = [...localPrivateNotes, ...myCloudPublic];
-                // Сортировка по времени (свежие сверху)
-                renderPool.sort((a,b) => b.id - a.id);
-            } else {
-                // Вкладка «Рекомендации»: выводит абсолютно ВСЕ публичные записи мира из облака
-                renderPool = globalFeedNotes;
-            }
+            const activeList = (currentFeedChannel === 'my') ? localMyNotes : cloudPublicNotes;
 
-            renderPool.forEach((note) => {
+            activeList.forEach((note) => {
                 if (filterQuery && !note.title.toLowerCase().includes(filterQuery.toLowerCase())) return;
 
                 const card = document.createElement('div');
                 card.classList.add('note-item');
                 
                 card.addEventListener('click', (e) => {
-                    if (e.target.classList.contains('action-del')) return;
+                    if (e.target.tagName === 'BUTTON') return;
                     openNoteViewer(note);
                 });
                 
-                // Кнопка удаления рендерится только если ты автор этого поста (проверка имени и ключа-пароля)
-                const isOwner = note.author === currentUser && (note.privacy === 'private' || note.author_pass_hash === currentPass);
-                const deleteBtn = isOwner ? `<button class="action-del" onclick="deleteNote('${note.privacy}', ${note.id || null}, event)">✕</button>` : '';
+                // Удаление доступно только для твоих локальных заметок
+                const deleteBtn = (currentFeedChannel === 'my') ? `<button class="action-del" onclick="deleteNote(${note.id || 0}, '${note.title}', event)">✕</button>` : '';
 
                 card.innerHTML = `
                     <div class="note-title">
@@ -452,25 +435,24 @@
             renderNotesList(document.getElementById('search-input').value);
         }
 
-        // БЕЗОПАСНОЕ УДАЛЕНИЕ ИЗ ОБЛАКА ИЛИ ЛОКАЛЬНОЙ ПАМЯТИ
-        async function deleteNote(privacy, id, event) {
+        // УДАЛЕНИЕ ЗАМЕТКИ С ЛОКАЛКИ И ИЗ ОБЛАКА SUPABASE
+        async function deleteNote(id, title, event) {
             event.stopPropagation();
-            if (privacy === 'private') {
-                // Удаление из памяти телефона
-                localPrivateNotes = localPrivateNotes.filter(note => note.id !== id);
-                localStorage.setItem('nc_local_private_db', JSON.stringify(localPrivateNotes));
-                renderNotesList();
-            } else {
-                // Вечное удаление из глобальной облачной базы Supabase по ID поста
-                await supabase
-                    .from('notes_club_feed')
-                    .delete()
-                    .eq('id', id)
-                    .eq('author_pass_hash', currentPass); // Дополнительный уровень защиты (чужой не удалит)
-                
-                // Перезапрашиваем облако, чтобы обновить ленту
-                await fetchGlobalRecommendations();
+            
+            // Удаляем у себя локально
+            localMyNotes = localMyNotes.filter(note => note.title !== title);
+            localStorage.setItem('nc_local_my_db', JSON.stringify(localMyNotes));
+            
+            // Если заметка была в облаке, стираем её оттуда по id или названию
+            if (supabase) {
+                if (id) {
+                    await supabase.from('notes').delete().eq('id', id);
+                } else {
+                    await supabase.from('notes').delete().eq('title', title).eq('author', currentUser);
+                }
             }
+            
+            fetchCloudNotes();
         }
 
         function openNoteViewer(note) {
@@ -483,6 +465,8 @@
         function closeNoteViewer() {
             document.getElementById('viewer-modal').style.display = 'none';
         }
+
+        renderNotesList();
     </script>
 
 </body>
