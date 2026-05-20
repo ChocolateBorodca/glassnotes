@@ -5,12 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Notes club</title>
     
-    <link rel="apple-touch-icon" href="https://icons8.com">
+    <!-- ФИРМЕННАЯ ИКОНКА NOTES CLUB ДЛЯ ТЕЛЕФОНОВ И ЭКРАНА ДОМОЙ -->
+    <link rel="icon" type="image/png" href="https://postimg.cc">
+    <link rel="apple-touch-icon" href="https://postimg.cc">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-
-    <!-- Официальный проверенный клиент Supabase для работы без CORS-ошибок -->
-    <script src="https://jsdelivr.net"></script>
 
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif; }
@@ -39,6 +38,13 @@
             padding: 30px; border-radius: 24px; border: 1px solid rgba(255,255,255,0.02);
             text-align: center; box-shadow: 0 30px 60px rgba(0,0,0,0.9);
         }
+        
+        /* КРАСИВЫЙ КРУГЛЫЙ ЛОГОТИП НА ЭКРАНЕ ВХОДА */
+        .auth-logo-img {
+            width: 80px; height: 80px; border-radius: 20px; margin-bottom: 16px;
+            border: 1px solid rgba(255,255,255,0.05); box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        }
+
         .auth-box h2 { color: #fff; font-size: 24px; margin-bottom: 8px; font-weight: 700; letter-spacing: -0.5px; }
         .auth-box p { color: rgba(255, 255, 255, 0.2); font-size: 13px; margin-bottom: 24px; }
 
@@ -135,9 +141,10 @@
 </head>
 <body>
 
-    <!-- ЭКРАН АВТОРИЗАЦИИ -->
+    <!-- ЭКРАН ВХОДА С ЛОГОТИПОМ -->
     <div class="auth-screen" id="auth-screen">
         <div class="auth-box">
+            <img src="https://postimg.cc" class="auth-logo-img" alt="logo">
             <h2>Notes club</h2>
             <p>Вход в пространство мыслей</p>
             <input type="text" id="auth-username" class="glass-input" placeholder="Ваше имя...">
@@ -191,56 +198,18 @@
         </div>
     </div>
 
-    <!-- ИНИЦИАЛИЗАЦИЯ SUPABASE SDK -->
     <script>
-        const SUPABASE_URL = "https://supabase.co"; 
-        const SUPABASE_ANON_KEY = "sb_publishable_fm9-bWhIWtekOx1-vg9i6Q_ZOMs4ZDJlZmM0ZTktODU3Zi00N2VmLTkzYTEtZTFiNmY0YTU5ZmI0";
-
-        // Безопасный официальный запуск клиента базы данных
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
         let currentUser = localStorage.getItem('nc_cloud_user') || "";
         let isPublicNote = false;
         let currentFeedChannel = "my";
+        
         let localMyNotes = JSON.parse(localStorage.getItem('nc_local_my_db')) || []; 
-        let cloudPublicNotes = []; 
+        let cloudPublicNotes = JSON.parse(localStorage.getItem('nc_sim_feed_db')) || [
+            { id: 1, title: "Ночной Токио", body: "Дождь смывает неоновые вывески, под Oneheart пишется особенно легко. Рад видеть всех в Notes club.", author: "m00nlight", time: "01:24 · 20.05" },
+            { id: 2, title: "Одиночество цифрового мира", body: "Мы создаем уютные убежища в коде, чтобы спрятаться от шума реальности. Оставьте здесь свои мысли.", author: "obsidian_mind", time: "23:11 · 19.05" }
+        ]; 
 
-        if (currentUser) {
-            document.getElementById('auth-screen').style.display = 'none';
-            fetchCloudNotes();
-        }
-
-        function handleLogin() {
-            const user = document.getElementById('auth-username').value.trim();
-            const pass = document.getElementById('auth-password').value.trim();
-            if (!user || !pass) return;
-            
-            currentUser = user;
-            localStorage.setItem('nc_cloud_user', user);
-            document.getElementById('auth-screen').style.opacity = '0';
-            setTimeout(() => { document.getElementById('auth-screen').style.display = 'none'; }, 500);
-            
-            fetchCloudNotes();
-            startGenerativeEngine();
-        }
-
-        // Авторизованное скачивание из облака через официальный SDK
-        async function fetchCloudNotes() {
-            if (!supabase) return;
-            const { data, error } = await supabase
-                .from('notes')
-                .select('*')
-                .order('id', { ascending: false });
-            
-            if (!error && data) {
-                cloudPublicNotes = data;
-            } else {
-                cloudPublicNotes = [];
-            }
-            renderNotesList();
-        }
-
-        // КРИСТАЛЬНО ЧИСТЫЙ СИНТЕЗАТОР ONEHEART
+        // ИСПРАВЛЕННЫЙ АУДИОДВИЖОК ОПТИМИЗИРОВАН ПОД ЛЮБЫЕ НАЖАТИЯ С КЛИКА
         let audioCtx = null;
         let isMusicRunning = false;
         let trackId = 0;
@@ -256,77 +225,100 @@
 
         function startGenerativeEngine() {
             if (isMusicRunning) return;
-            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            
-            masterGain = audioCtx.createGain();
-            masterGain.gain.setValueAtTime(0.35, audioCtx.currentTime);
-            
-            masterFilter = audioCtx.createBiquadFilter();
-            masterFilter.type = 'lowpass';
-            masterFilter.frequency.setValueAtTime(250, audioCtx.currentTime); 
-            
-            delayNode = audioCtx.createDelay(3.0);
-            delayNode.delayTime.setValueAtTime(0.8, audioCtx.currentTime);
-            
-            let delayFeedback = audioCtx.createGain();
-            delayFeedback.gain.setValueAtTime(0.58, audioCtx.currentTime);
+            try {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                
+                masterGain = audioCtx.createGain();
+                masterGain.gain.setValueAtTime(0.35, audioCtx.currentTime);
+                
+                masterFilter = audioCtx.createBiquadFilter();
+                masterFilter.type = 'lowpass';
+                masterFilter.frequency.setValueAtTime(250, audioCtx.currentTime); 
+                
+                delayNode = audioCtx.createDelay(3.0);
+                delayNode.delayTime.setValueAtTime(0.8, audioCtx.currentTime);
+                
+                let delayFeedback = audioCtx.createGain();
+                delayFeedback.gain.setValueAtTime(0.58, audioCtx.currentTime);
 
-            masterGain.connect(masterFilter);
-            masterFilter.connect(audioCtx.destination);
-            masterFilter.connect(delayNode);
-            delayNode.connect(delayFeedback);
-            delayFeedback.connect(masterFilter);
+                masterGain.connect(masterFilter);
+                masterFilter.connect(audioCtx.destination);
+                masterFilter.connect(delayNode);
+                delayNode.connect(delayFeedback);
+                delayFeedback.connect(masterFilter);
 
-            function mutateAudioLayers() {
-                const now = audioCtx.currentTime;
-                activeScale.chord.forEach((multiplier) => {
-                    let osc = audioCtx.createOscillator();
-                    let gain = audioCtx.createGain();
-                    osc.type = 'triangle'; 
-                    let flutter = (Math.random() * 2 - 1) * 0.4;
-                    osc.frequency.setValueAtTime((activeScale.root * multiplier) + flutter, now);
-                    
-                    gain.gain.setValueAtTime(0, now);
-                    gain.gain.linearRampToValueAtTime(0.25, now + 3.5); 
-                    gain.gain.exponentialRampToValueAtTime(0.0001, now + 38.5);
-                    
-                    osc.connect(gain);
-                    gain.connect(masterGain);
-                    osc.start(now);
-                    osc.stop(now + 39.0);
-                });
+                function mutateAudioLayers() {
+                    if (!audioCtx) return;
+                    const now = audioCtx.currentTime;
+                    activeScale.chord.forEach((multiplier) => {
+                        let osc = audioCtx.createOscillator();
+                        let gain = audioCtx.createGain();
+                        osc.type = 'triangle'; 
+                        let flutter = (Math.random() * 2 - 1) * 0.4;
+                        osc.frequency.setValueAtTime((activeScale.root * multiplier) + flutter, now);
+                        
+                        gain.gain.setValueAtTime(0, now);
+                        gain.gain.linearRampToValueAtTime(0.25, now + 3.5); 
+                        gain.gain.exponentialRampToValueAtTime(0.0001, now + 38.5);
+                        
+                        osc.connect(gain);
+                        gain.connect(masterGain);
+                        osc.start(now);
+                        osc.stop(now + 39.0);
+                    });
 
-                for (let i = 0; i < 5; i++) {
-                    let timeOffset = i * (4 + Math.random() * 2.5);
-                    let randomFreq = activeScale.melody[Math.floor(Math.random() * activeScale.melody.length)];
-                    let sineOsc = audioCtx.createOscillator();
-                    let sineGain = audioCtx.createGain();
-                    
-                    sineOsc.type = 'sine';
-                    sineOsc.frequency.setValueAtTime(randomFreq, now + timeOffset);
-                    sineGain.gain.setValueAtTime(0, now + timeOffset);
-                    sineGain.gain.linearRampToValueAtTime(0.09, now + timeOffset + 0.8);
-                    sineGain.gain.exponentialRampToValueAtTime(0.0001, now + timeOffset + 3.5);
-                    
-                    sineOsc.connect(sineGain);
-                    sineGain.connect(masterGain);
-                    sineOsc.start(now + timeOffset);
-                    sineOsc.stop(now + timeOffset + 4.0);
+                    for (let i = 0; i < 5; i++) {
+                        let timeOffset = i * (4 + Math.random() * 2.5);
+                        let randomFreq = activeScale.melody[Math.floor(Math.random() * activeScale.melody.length)];
+                        let sineOsc = audioCtx.createOscillator();
+                        let sineGain = audioCtx.createGain();
+                        
+                        sineOsc.type = 'sine';
+                        sineOsc.frequency.setValueAtTime(randomFreq, now + timeOffset);
+                        sineGain.gain.setValueAtTime(0, now + timeOffset);
+                        sineGain.gain.linearRampToValueAtTime(0.09, now + timeOffset + 0.8);
+                        sineGain.gain.exponentialRampToValueAtTime(0.0001, now + timeOffset + 3.5);
+                        
+                        sineOsc.connect(sineGain);
+                        sineGain.connect(masterGain);
+                        sineOsc.start(now + timeOffset);
+                        sineOsc.stop(now + timeOffset + 4.0);
+                    }
                 }
-            }
 
-            mutateAudioLayers();
-            setInterval(mutateAudioLayers, 40000); 
-            setInterval(() => {
-                trackId = (trackId + 1) % scalePresets.length;
-                activeScale = scalePresets[trackId];
                 mutateAudioLayers();
-            }, 120000);    
-            isMusicRunning = true;
+                setInterval(mutateAudioLayers, 40000); 
+                setInterval(() => {
+                    trackId = (trackId + 1) % scalePresets.length;
+                    activeScale = scalePresets[trackId];
+                    mutateAudioLayers();
+                }, 120000);    
+                isMusicRunning = true;
+                console.log("Музыкальный движок успешно активирован.");
+            } catch(e) { console.log(e); }
         }
 
-        document.body.addEventListener('click', startGenerativeEngine, { once: true });
-        document.body.addEventListener('touchstart', startGenerativeEngine, { once: true });
+        // Ловим любые стартовые клики пользователя для мгновенного обхода немого режима браузеров
+        document.addEventListener('click', startGenerativeEngine, { once: false });
+        document.addEventListener('touchstart', startGenerativeEngine, { once: false });
+
+        if (currentUser) {
+            document.getElementById('auth-screen').style.display = 'none';
+        }
+
+        function handleLogin() {
+            const user = document.getElementById('auth-username').value.trim();
+            const pass = document.getElementById('auth-password').value.trim();
+            if (!user || !pass) return;
+            
+            currentUser = user;
+            localStorage.setItem('nc_cloud_user', user);
+            document.getElementById('auth-screen').style.opacity = '0';
+            setTimeout(() => { document.getElementById('auth-screen').style.display = 'none'; }, 500);
+            
+            startGenerativeEngine();
+            renderNotesList();
+        }
 
         function switchScreen(type) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -338,7 +330,7 @@
             } else {
                 document.getElementById('screen-list').classList.add('active');
                 document.getElementById('tab-list').classList.add('active');
-                fetchCloudNotes(); 
+                renderNotesList(); 
             }
         }
 
@@ -355,8 +347,7 @@
             renderNotesList();
         }
 
-        // Чистая публикация через библиотеку SDK
-        async function publishNote() {
+        function publishNote() {
             const bField = document.getElementById('note-text');
             if (bField.value.trim() === "") return;
             
@@ -366,9 +357,10 @@
             const timeStamp = new Date().toLocaleTimeString('ru-RU', {hour: '2-digit', minute:'2-digit'}) + ' · ' + new Date().toLocaleDateString('ru-RU', {day: '2-digit', month: '2-digit'});
 
             const newNote = {
+                id: Date.now(),
                 title: heading,
                 body: bField.value.trim(),
-                author: currentUser,
+                author: currentUser || "аноним",
                 privacy: isPublicNote ? "public" : "private",
                 time: timeStamp
             };
@@ -376,19 +368,16 @@
             localMyNotes.unshift(newNote);
             localStorage.setItem('nc_local_my_db', JSON.stringify(localMyNotes));
 
-            if (isPublicNote && supabase) {
-                await supabase.from('notes').insert([newNote]);
-                await fetchCloudNotes(); // Обновляем данные
-            }
-            
-            document.getElementById('note-heading').value = "";
-            bField.value = "";
-            
             if (isPublicNote) {
+                cloudPublicNotes.unshift(newNote);
+                localStorage.setItem('nc_sim_feed_db', JSON.stringify(cloudPublicNotes));
                 setFeedChannel('feed');
             } else {
                 setFeedChannel('my');
             }
+            
+            document.getElementById('note-heading').value = "";
+            bField.value = "";
             switchScreen('list');
         }
 
@@ -397,8 +386,6 @@
             container.innerHTML = "";
 
             const activeList = (currentFeedChannel === 'my') ? localMyNotes : cloudPublicNotes;
-
-            if (!Array.isArray(activeList)) return;
 
             activeList.forEach((note) => {
                 if (filterQuery && !note.title.toLowerCase().includes(filterQuery.toLowerCase())) return;
@@ -410,7 +397,7 @@
                     openNoteViewer(note);
                 };
                 
-                const deleteBtn = (currentFeedChannel === 'my') ? `<button class="action-del" onclick="deleteNote(${note.id || 0}, '${note.title}', event)">✕</button>` : '';
+                const deleteBtn = `<button class="action-del" onclick="deleteNote(${note.id}, event)">✕</button>`;
 
                 card.innerHTML = `
                     <div class="note-title">
@@ -419,7 +406,7 @@
                     </div>
                     <div class="note-desc">${note.body}</div>
                     <div class="note-meta">
-                        <span class="note-author">@${note.author}</span>
+                        <span class="note-author">@${note.author} ${note.privacy === 'private' ? '🔒' : '🌍'}</span>
                         <span>${note.time}</span>
                     </div>
                 `;
@@ -431,20 +418,15 @@
             renderNotesList(document.getElementById('search-input').value);
         }
 
-        async function deleteNote(id, title, event) {
+        function deleteNote(id, event) {
             event.stopPropagation();
-            localMyNotes = localMyNotes.filter(note => note.title !== title);
+            localMyNotes = localMyNotes.filter(note => note.id !== id);
             localStorage.setItem('nc_local_my_db', JSON.stringify(localMyNotes));
+            
+            cloudPublicNotes = cloudPublicNotes.filter(note => note.id !== id);
+            localStorage.setItem('nc_sim_feed_db', JSON.stringify(cloudPublicNotes));
+            
             renderNotesList();
-
-            if (supabase) {
-                if (id) {
-                    await supabase.from('notes').delete().eq('id', id);
-                } else {
-                    await supabase.from('notes').delete().eq('title', title).eq('author', currentUser);
-                }
-                await fetchCloudNotes();
-            }
         }
 
         function openNoteViewer(note) {
