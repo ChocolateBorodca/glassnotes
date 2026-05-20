@@ -9,7 +9,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
-    <!-- Клиент Supabase для вечного хранения заметок в облаке -->
+    <!-- Официальный клиент Supabase для вечного хранения заметок в облаке -->
     <script src="https://jsdelivr.net"></script>
 
     <style>
@@ -193,11 +193,11 @@
 
     <!-- АУДИОДВИЖОК ONEHEART + ОБЛАКО SUPABASE -->
     <script>
-        // ТВОИ КЛЮЧИ И URL УСПЕШНО ИНТЕГРИРОВАНЫ ИЗ ТВОЕЙ ПАНЕЛИ SUPABASE
         const SUPABASE_URL = "https://supabase.co"; 
         const SUPABASE_ANON_KEY = "sb_publishable_fm9-bWhIWtekOx1-vg9i6Q_ZOMs4ZDJlZmM0ZTktODU3Zi00N2VmLTkzYTEtZTFiNmY0YTU5ZmI0";
 
-        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        // ИСПРАВЛЕННЫЙ СИНТАКСИС ИНИЦИАЛИЗАЦИИ КЛИЕНТА ОБЛАКА
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         let audioCtx = null;
         let isMusicRunning = false;
@@ -214,30 +214,38 @@
         }
 
         function handleLogin() {
-            const user = document.getElementById('auth-username').value.trim();
-            const pass = document.getElementById('auth-password').value.trim();
-            if (!user || !pass) return;
-            
-            currentUser = user;
-            localStorage.setItem('nc_cloud_user', user);
-            document.getElementById('auth-screen').style.opacity = '0';
-            setTimeout(() => { document.getElementById('auth-screen').style.display = 'none'; }, 500);
-            
-            fetchCloudNotes();
-            startGenerativeEngine();
+            try {
+                const user = document.getElementById('auth-username').value.trim();
+                const pass = document.getElementById('auth-password').value.trim();
+                if (!user || !pass) return;
+                
+                currentUser = user;
+                localStorage.setItem('nc_cloud_user', user);
+                document.getElementById('auth-screen').style.opacity = '0';
+                setTimeout(() => { document.getElementById('auth-screen').style.display = 'none'; }, 500);
+                
+                fetchCloudNotes();
+                startGenerativeEngine();
+            } catch(err) {
+                alert("Ошибка авторизации: " + err.message);
+            }
         }
 
         async function fetchCloudNotes() {
             if (!supabase) return;
-            const { data, error } = await supabase
-                .from('notes')
-                .select('*')
-                .order('id', { ascending: false }); // Новые публичные записи всегда сверху
-            
-            if (!error && data) {
-                cloudPublicNotes = data;
-                renderNotesList();
-            }
+            try {
+                const { data, error } = await supabase
+                    .from('notes')
+                    .select('*')
+                    .order('id', { ascending: false });
+                
+                if (!error && data) {
+                    cloudPublicNotes = data;
+                    renderNotesList();
+                } else if (error) {
+                    console.log("Ошибка загрузки ленты: " + error.message);
+                }
+            } catch(e) {}
         }
 
         // КРИСТАЛЬНО ЧИСТЫЙ СИНТЕЗАТОР ONEHEART
@@ -374,7 +382,8 @@
             localStorage.setItem('nc_local_my_db', JSON.stringify(localMyNotes));
 
             if (isPublicNote && supabase) {
-                await supabase.from('notes').insert([newNote]);
+                const { error } = await supabase.from('notes').insert([newNote]);
+                if (error) alert("Ошибка отправки в облако: " + error.message);
             }
             
             document.getElementById('note-heading').value = "";
