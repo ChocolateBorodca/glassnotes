@@ -188,7 +188,7 @@
         </div>
     </div>
 
-    <!-- ЧИСТЫЙ ЗВУК ONEHEART + СВЯЗЬ С ОБЛАКОМ SUPABASE ЧЕРЕЗ АЛФАВИТНЫЙ JSON -->
+    <!-- АУДИОДВИЖОК + ДИАГНОСТИКА СЕТЕВЫХ КОДОВ -->
     <script>
         let currentUser = localStorage.getItem('nc_cloud_user') || "";
         let isPublicNote = false;
@@ -230,14 +230,22 @@
                     "Authorization": `Bearer ${API_KEY}`
                 }
             })
-            .then(res => res.json())
+            .then(res => {
+                if (!res.ok) {
+                    return res.text().then(text => { throw new Error(`Код ${res.status}: ${text}`); });
+                }
+                return res.json();
+            })
             .then(data => {
                 if (Array.isArray(data)) {
                     cloudPublicNotes = data;
                     renderNotesList();
                 }
             })
-            .catch(err => console.log("Сбой загрузки ленты"));
+            .catch(err => {
+                // Если сервер вернул техническую ошибку, выводим её на экран
+                alert("Диагностика Ленты:\n" + err.message);
+            });
         }
 
         // КРИСТАЛЬНО ЧИСТЫЙ СИНТЕЗАТОР ONEHEART
@@ -376,7 +384,6 @@
             localStorage.setItem('nc_local_my_db', JSON.stringify(localMyNotes));
 
             if (isPublicNote) {
-                // ОТПРАВЛЯЕМ В КРИСТАЛЬНО ЧИСТОЕ ОБЛАКО SUPABASE С АЛФАВИТНЫМИ КЛЮЧАМИ
                 fetch(API_URL, {
                     method: "POST",
                     headers: {
@@ -387,8 +394,15 @@
                     },
                     body: JSON.stringify(newNote)
                 })
+                .then(res => {
+                    if (!res.ok) return res.text().then(text => { throw new Error(text); });
+                    return res.text();
+                })
                 .then(() => {
                     fetchCloudNotes();
+                })
+                .catch(err => {
+                    alert("Ошибка отправки:\n" + err.message);
                 });
             }
             
