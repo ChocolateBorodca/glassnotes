@@ -2,12 +2,12 @@
 window.addEventListener('DOMContentLoaded', () => {
   injectGlobalStyles();
   setupFullscreenOverlay();
+  setupAuthOverlay(); // Запускаем блокирующий экран авторизации
   fixSubmitButtonGlow();
-  // Перезаписываем загрузку постов из app.js нашей новой умной логикой
   loadLocalNotes(); 
 });
 
-// --- 1. ДОБАВЛЕНИЕ СТИЛЕЙ БЕЗ ИЗМЕНЕНИЯ INDEX.HTML ---
+// --- 1. ДОБАВЛЕНИЕ СТИЛЕЙ ДЛЯ КНОПКИ, ОВЕРЛЕЯ И ФОРМЫ АВТОРИЗАЦИЯ ---
 function injectGlobalStyles() {
   const style = document.createElement('style');
   style.innerHTML = `
@@ -97,11 +97,126 @@ function injectGlobalStyles() {
       letter-spacing: -0.3px;
       word-break: break-word;
     }
+
+    /* Экран авторизации Apple Liquid Glass */
+    #auth-overlay {
+      position: fixed;
+      top: 0; left: 0; width: 100vw; height: 100vh;
+      background: #000000;
+      z-index: 20000;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      box-sizing: border-box;
+      transition: opacity 0.5s ease, transform 0.5s ease;
+    }
+    .auth-container {
+      width: 100%;
+      max-width: 400px;
+      display: flex;
+      flex-direction: column;
+    }
+    .auth-title {
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      text-align: center;
+      margin-bottom: 35px;
+      background: linear-gradient(180deg, #ffffff 0%, rgba(255, 255, 255, 0.5) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .auth-form-panel {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-top: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 24px;
+      padding: 25px 20px;
+      backdrop-filter: blur(50px) saturate(210%);
+      -webkit-backdrop-filter: blur(50px) saturate(210%);
+      box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+    .auth-input {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 14px;
+      color: #ffffff;
+      padding: 16px;
+      font-family: inherit;
+      font-size: 16px;
+      outline: none;
+      box-sizing: border-box;
+      transition: border-color 0.3s;
+      user-select: text !important;
+    }
+    .auth-input:focus {
+      border-color: rgba(255, 255, 255, 0.25);
+    }
+    .auth-btn {
+      width: 100%;
+      padding: 16px;
+      font-size: 16px;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+    }
   `;
   document.head.appendChild(style);
 }
 
-// --- 2. СОЗДАНИЕ КРАСИВОГО МАКСИМАЛЬНОГО ОВЕРЛЕЯ ---
+// --- 2. ЭКРАН АВТОРИЗАЦИИ (ВХОД) ---
+function setupAuthOverlay() {
+  if (document.getElementById('auth-overlay')) return;
+
+  const authOverlay = document.createElement('div');
+  authOverlay.id = 'auth-overlay';
+  authOverlay.innerHTML = `
+    <div class="auth-container">
+      <div class="auth-title">notes club</div>
+      <div class="auth-form-panel">
+        <input type="text" id="auth-username" class="auth-input" placeholder="имя">
+        <input type="password" id="auth-password" class="auth-input" placeholder="пароль">
+      </div>
+      <button class="liquid-glass-btn auth-btn submit-glass-btn" onclick="handleAuthLogin()">войти</button>
+    </div>
+  `;
+  document.body.appendChild(authOverlay);
+}
+
+function handleAuthLogin() {
+  const userNode = document.getElementById('auth-username');
+  const passNode = document.getElementById('auth-password');
+  
+  if (!userNode || !passNode) return;
+
+  const username = userNode.value.trim();
+  const password = passNode.value.trim();
+
+  // Если поля заполнены — пропускаем в приложение
+  if (username !== "" && password !== "") {
+    const overlay = document.getElementById('auth-overlay');
+    overlay.style.opacity = '0';
+    overlay.style.transform = 'scale(1.05)';
+    setTimeout(() => {
+      overlay.remove();
+    }, 500);
+  } else {
+    // Простая вибрация формы при ошибке ввода
+    const panel = document.querySelector('.auth-form-panel');
+    if (panel) {
+      panel.style.transform = 'translateX(5px)';
+      setTimeout(() => panel.style.transform = 'translateX(-5px)', 80);
+      setTimeout(() => panel.style.transform = 'translateX(0)', 160);
+    }
+  }
+}
+
+// --- 3. ПОЛНОЭКРАННЫЙ ПРОСМОР ЗАМЕТОК ---
 function setupFullscreenOverlay() {
   if (document.getElementById('fullscreen-overlay')) return;
 
@@ -123,13 +238,13 @@ function closeOverlay() {
   document.getElementById('fullscreen-overlay').classList.remove('active');
 }
 
-// --- 3. ИСПРАВЛЕНИЕ ПОДСВЕТКИ КНОПКИ ОТПРАВИТЬ ---
+// --- 4. ПОДСВЕТКА КНОПКИ ОТПРАВИТЬ ---
 function fixSubmitButtonGlow() {
   const btn = document.querySelector('.submit-glass-btn');
   if (btn) btn.classList.add('submit-glass-btn');
 }
 
-// --- 4. МОДЕРНИЗИРОВАННАЯ КАРТОЧКА С УДАЛЕНИЕМ И СОРТИРОВКОЙ ПО ЛЕНТАМ ---
+// --- 5. КАРТОЧКИ С УДАЛЕНИЕМ И СОРТИРОВКОЙ ПО ЛЕНТАМ ---
 function loadLocalNotes() {
   const myFeed = document.getElementById('myFeed');
   const recFeed = document.getElementById('recFeed');
@@ -137,7 +252,6 @@ function loadLocalNotes() {
   if (!myFeed || !recFeed) return;
 
   myFeed.innerHTML = '';
-  // Очищаем рекомендации, оставляя только наш системный пост по умолчанию
   recFeed.innerHTML = `
     <div class="glass-card">
       <div class="card-text">Всё вокруг кажется симуляцией, пока ты не зальешь это в клуб. Первое децентрализованное PWA-приложение запущено.</div>
@@ -159,7 +273,6 @@ function loadLocalNotes() {
     const card = document.createElement('div');
     card.className = 'glass-card';
     
-    // Делаем так, чтобы при клике на саму карточку открывался полноэкранный режим (если это не клик по кнопке удаления или плееру)
     card.onclick = (e) => {
       if (!e.target.closest('.delete-btn') && !e.target.closest('.liquid-audio-player')) {
         let contentToView = note.text ? escapeHTML(note.text) : "Голосовая заметка";
@@ -193,39 +306,28 @@ function loadLocalNotes() {
       </div>
     `;
 
-    // --- УМНОЕ РАСПРЕДЕЛЕНИЕ ПО ЛЕНТАМ ---
-    // Если сообщение ПУБЛИЧНОЕ — оно мгновенно летит и в "Рекомендации" (публичный поток), и в "Писать" (твоя общая история)
     if (note.scope === 'public') {
       myFeed.appendChild(card.cloneNode(true));
-      // Назначаем события для клонированной карточки в рекомендациях
       const recCard = myFeed.lastChild;
       setupCardEvents(recCard, note);
       
       recFeed.insertBefore(card, recFeed.firstChild);
     } else {
-      // Если ЛИЧНОЕ — строго только во вкладку "Писать"
       myFeed.appendChild(card);
     }
   });
 }
-
-// Вспомогательная функция для восстановления кликов на клонированных карточках
 function setupCardEvents(cardElement, note) {
   cardElement.onclick = (e) => {
     if (!e.target.closest('.delete-btn') && !e.target.closest('.liquid-audio-player')) {
       openOverlay(note.text ? escapeHTML(note.text) : "Голосовая заметка");
-    }
-  };
-}
-
-// --- 5. ФУНКЦИЯ ПОЛНОГО УДАЛЕНИЯ ЗАМЕТКИ ---
+      }
+    };
+  }
 function deleteNote(event, id) {
-  event.stopPropagation(); // Предотвращаем открытие оверлея при нажатии на крестик
-  
+  event.stopPropagation();
   let notes = JSON.parse(localStorage.getItem('obsidian_notes') || '[]');
   notes = notes.filter(note => note.id !== id);
   localStorage.setItem('obsidian_notes', JSON.stringify(notes));
-  
-  // Перезагружаем ленты
   loadLocalNotes();
-}
+  }
