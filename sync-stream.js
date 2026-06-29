@@ -5,7 +5,7 @@ window.addEventListener('DOMContentLoaded', () => {
   injectMediaStyles();
   injectUploadButton();
   
-  // Перезаписываем глобальные функции управления заметками
+  // Перезаписываем функции в глобальном окне
   window.sendPost = sendPostToNodeServer;
   window.loadLocalNotes = loadOnlyLocalNotes;
   window.deleteNote = deleteNoteFromLocal;
@@ -20,14 +20,14 @@ window.addEventListener('DOMContentLoaded', () => {
       newBtn.addEventListener('click', sendPostToNodeServer);
     }
     
-    // Запускаем постоянный живой стрим с сервера для вкладки Рекомендации
+    // Запускаем живой стрим с сервера
     listenToNodeRecommendations();
-    // Отрисовываем личные локальные заметки
+    // Отрисовываем личные заметки
     loadOnlyLocalNotes();
   }, 200);
 });
 
-// --- 1. ОТПРАВКА НА СЕРВЕР (ЛИЧНОЕ В LOCALSTORAGE, ПУБЛИЧНОЕ В СЕТЬ) ---
+// --- 1. ИСПРАВЛЕННАЯ ОТПРАВКА НА СЕРВЕР С ОБХОДОМ БЛОКИРОВКИ БРАУЗЕРА ---
 async function sendPostToNodeServer() {
   const textarea = document.getElementById('noteText');
   const text = textarea.value.trim();
@@ -50,9 +50,14 @@ async function sendPostToNodeServer() {
   // Если ПУБЛИЧНОЕ — отправляем на наш новый быстрый Render сервер
   if (scope === 'public') {
     try {
+      // Добавили специальные заголовкиcors, чтобы браузер не блокировал кнопку
       const response = await fetch(`${SERVER_URL}/api/posts`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        mode: "cors",
+        headers: { 
+          "Content-Type": "application/json",
+          "Accept": "application/json"
+        },
         body: JSON.stringify(newNote)
       });
       if (response.ok) {
@@ -87,7 +92,11 @@ function listenToNodeRecommendations() {
     if (recFeed.classList.contains('hidden')) return;
 
     try {
-      const response = await fetch(`${SERVER_URL}/api/posts`);
+      const response = await fetch(`${SERVER_URL}/api/posts`, {
+        method: "GET",
+        mode: "cors",
+        headers: { "Accept": "application/json" }
+      });
       if (!response.ok) return;
       const onlinePosts = await response.json();
 
