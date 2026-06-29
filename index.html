@@ -42,14 +42,14 @@
       position: relative;
     }
 
-    /* Холст для полноэкранной анимации звуковых волн от кнопок */
+    /* Исправленный холст: теперь клики проходят сквозь него */
     #wave-canvas {
       position: fixed;
       top: 0;
       left: 0;
       width: 100vw;
       height: 100vh;
-      pointer-events: none;
+      pointer-events: none !important;
       z-index: 999;
     }
 
@@ -62,7 +62,6 @@
       z-index: 10;
     }
 
-    /* Верхняя панель */
     .header-panel {
       display: flex;
       justify-content: space-between;
@@ -86,7 +85,6 @@
       text-transform: uppercase;
     }
 
-    /* Длинные стеклянные кнопки сверху */
     .main-tabs {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -94,7 +92,6 @@
       margin-bottom: 20px;
     }
 
-    /* Базовый стиль ультра-стекла Apple Liquid Glass */
     .liquid-glass-btn {
       background: var(--glass-bg);
       border: 1px solid var(--glass-border);
@@ -121,7 +118,6 @@
       transform: scale(1.01);
     }
 
-    /* Центральный блок ввода */
     .input-glass-panel {
       background: var(--glass-bg);
       border: 1px solid var(--glass-border);
@@ -153,7 +149,6 @@
       color: var(--text-muted);
     }
 
-    /* Кнопка записи голоса внутри блока (справа в углу) */
     .mic-glass-button {
       position: absolute;
       right: 18px;
@@ -192,7 +187,6 @@
       fill: #ff453a;
     }
 
-    /* Переключатели приватности (под полем ввода) */
     .privacy-selectors {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -206,7 +200,6 @@
       border-radius: 12px;
     }
 
-    /* Нижняя длинная стеклянная кнопка Отправить */
     .submit-glass-btn {
       width: 100%;
       padding: 18px;
@@ -215,7 +208,6 @@
       margin-bottom: 30px;
     }
 
-    /* Ленты постов */
     .stream-feed {
       display: flex;
       flex-direction: column;
@@ -250,7 +242,6 @@
       letter-spacing: 0.5px;
     }
 
-    /* Кастомный жидкокристаллический плеер для голосовых заметок */
     .liquid-audio-player {
       background: rgba(255, 255, 255, 0.04);
       border: 1px solid rgba(255, 255, 255, 0.08);
@@ -320,7 +311,6 @@
 </head>
 <body>
 
-  <!-- Холст для расходящихся звуковых волн -->
   <canvas id="wave-canvas"></canvas>
 
   <div class="app-container">
@@ -329,18 +319,15 @@
       <div class="music-badge" id="music-status">ambient: off</div>
     </div>
 
-    <!-- Верхние длинные кнопки -->
     <div class="main-tabs">
       <button id="tabMy" class="liquid-glass-btn active" onclick="switchTab('my')">писать</button>
       <button id="tabRec" class="liquid-glass-btn" onclick="switchTab('rec')">рекомендации</button>
     </div>
 
-    <!-- Блок создания контента -->
     <div id="creatorSection">
       <div class="input-glass-panel">
         <textarea id="noteText" placeholder="Зафиксируй состояние или зажми микрофон..."></textarea>
         
-        <!-- Кнопка микрофона -->
         <div id="micBtn" class="mic-glass-button">
           <svg class="mic-icon" viewBox="0 0 24 24">
             <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.42 2.72 6.2 6 6.72V21h2v-3.28c3.28-.52 6-3.3 6-6.72h-1.7z"/>
@@ -348,14 +335,26 @@
         </div>
       </div>
 
-      <!-- Кнопки личное и публичное -->
       <div class="privacy-selectors">
         <button id="scopePrivate" class="liquid-glass-btn privacy-btn active" onclick="setScope('private')">личное</button>
         <button id="scopePublic" class="liquid-glass-btn privacy-btn" onclick="setScope('public')">публичное</button>
       </div>
 
-      <!-- Длинная кнопка отправить -->
       <button class="liquid-glass-btn submit-glass-btn" onclick="sendPost()">отправить</button>
     </div>
 
-    <!-- Ленты новостей -->
+    <div id="myFeed" class="stream-feed"></div>
+    <div id="recFeed" class="stream-feed hidden">
+      <div class="glass-card">
+        <div class="card-text">Всё вокруг кажется симуляцией, пока ты не зальешь это в клуб. Первое децентрализованное PWA-приложение запущено.</div>
+        <div class="card-meta">
+          <span>системный поток</span>
+          <span>публичное</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
