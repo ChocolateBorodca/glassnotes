@@ -2,18 +2,8 @@
 window.addEventListener('DOMContentLoaded', () => {
   injectMediaStyles();
   injectUploadButton();
-  
-  // Перехватываем стандартные функции из глобальной области видимости
   window.sendPost = sendPostWithMedia;
   window.loadLocalNotes = loadNotesWithMediaAndAuthor;
-  
-  // Дополнительно перестрахуемся и перехватим нажатие на саму кнопку из index.html
-  const submitBtn = document.querySelector('.submit-glass-btn');
-  if (submitBtn) {
-    submitBtn.removeAttribute('onclick');
-    submitBtn.addEventListener('click', sendPostWithMedia);
-  }
-
   loadLocalNotes();
 });
 
@@ -88,7 +78,7 @@ function injectUploadButton() {
   });
 
   fileInput.addEventListener('change', (e) => {
-    const file = e.target.files[0];
+    const file = e.target.files;
     if (!file) return;
 
     const reader = new FileReader();
@@ -108,7 +98,8 @@ function sendPostWithMedia() {
   
   if (!text && !window.recordedAudioBase64) return;
 
-  let currentAuthor = localStorage.getItem('notes_club_user') || 'Аноним';
+  // Ищем имя по всем возможным ключам авторизации
+  let currentAuthor = localStorage.getItem('notes_club_user') || localStorage.getItem('obsidian_username') || window.currentUsername || 'Пользователь';
   let notes = JSON.parse(localStorage.getItem('obsidian_notes') || '[]');
   
   const newNote = {
@@ -129,7 +120,11 @@ function sendPostWithMedia() {
   if (hf) hf.value = '';
   textarea.placeholder = "Зафиксируй состояние или зажми микрофон...";
   
-  loadLocalNotes();
+  if (typeof window.sendPostWithOnlineSync === 'function') {
+    window.sendPostWithOnlineSync(newNote);
+  } else {
+    loadLocalNotes();
+  }
 }
 
 function buildCardHTML(note) {
@@ -163,22 +158,9 @@ function buildCardHTML(note) {
 
 function loadNotesWithMediaAndAuthor() {
   const myFeed = document.getElementById('myFeed');
-  const recFeed = document.getElementById('recFeed');
-  
-  if (!myFeed || !recFeed) return;
+  if (!myFeed) return;
 
   myFeed.innerHTML = '';
-  recFeed.innerHTML = `
-    <div class="glass-card">
-      <div class="card-author">@system</div>
-      <div class="card-text">Всё вокруг кажется симуляцией, пока ты не зальешь это в клуб. Первое децентрализованное PWA-приложение запущено.</div>
-      <div class="card-meta">
-        <span>системный поток</span>
-        <span>публичное</span>
-      </div>
-    </div>
-  `;
-
   let notes = JSON.parse(localStorage.getItem('obsidian_notes') || '[]');
 
   if (notes.length === 0) {
@@ -187,7 +169,6 @@ function loadNotesWithMediaAndAuthor() {
   }
 
   notes.forEach(note => {
-    // Карточка для вкладки Заметки
     const cardMy = document.createElement('div');
     cardMy.className = 'glass-card';
     cardMy.innerHTML = buildCardHTML(note);
@@ -197,22 +178,9 @@ function loadNotesWithMediaAndAuthor() {
       }
     };
     myFeed.appendChild(cardMy);
-
-    // Карточка для вкладки Рекомендации (если публичное)
-    if (note.scope === 'public') {
-      const cardRec = document.createElement('div');
-      cardRec.className = 'glass-card';
-      cardRec.innerHTML = buildCardHTML(note);
-      cardRec.onclick = (e) => {
-        if (!e.target.closest('.delete-btn') && !e.target.closest('.liquid-audio-player')) {
-          if (typeof openOverlay === 'function') openOverlay(note.text ? escapeHTML(note.text) : "Медиазаметка");
-        }
-      };
-      recFeed.insertBefore(cardRec, recFeed.firstChild);
-    }
   });
+}
 
-  if (typeof applyTimeDissolveEffect === 'function') {
-    applyTimeDissolveEffect();
-  }
+function escapeHTML(str) {
+  return str.replace(/[&<>"']/g, tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[tag] || tag));
 }
