@@ -14,7 +14,6 @@ window.addEventListener('DOMContentLoaded', () => {
     const submitBtn = document.querySelector('.submit-glass-btn');
     if (submitBtn) {
       submitBtn.removeAttribute('onclick');
-      // Удаляем старые слушатели и вешаем один главный
       const newBtn = submitBtn.cloneNode(true);
       submitBtn.parentNode.replaceChild(newBtn, submitBtn);
       newBtn.addEventListener('click', sendPostOnlineAndLocal);
@@ -100,7 +99,7 @@ function injectUploadButton() {
   });
 
   fileInput.addEventListener('change', (e) => {
-    const file = e.target.files[0];
+    const file = e.target.files;
     if (!file) return;
 
     const reader = new FileReader();
@@ -121,7 +120,6 @@ function sendPostOnlineAndLocal() {
   
   if (!text && !window.recordedAudioBase64) return;
 
-  // Безопасный сбор имени автора из всех возможных мест
   let currentAuthor = localStorage.getItem('notes_club_user') || localStorage.getItem('obsidian_username') || window.currentUsername || 'Пользователь';
   const postDate = new Date().toLocaleString('ru-RU', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' });
   const scope = window.currentScope || 'private';
@@ -135,7 +133,7 @@ function sendPostOnlineAndLocal() {
     date: postDate
   };
 
-  // ЕСЛИ ПУБЛИЧНОЕ — принудительно пушим прямо в Realtime Database
+  // ЕСЛИ ПУБЛИЧНОЕ — отправляем в облако
   if (scope === 'public') {
     try {
       const postsRef = ref(window.db, 'global_posts');
@@ -158,7 +156,7 @@ function sendPostOnlineAndLocal() {
   if (hf) hf.value = '';
   textarea.placeholder = "Зафиксируй состояние или зажми микрофон...";
   
-  // Перерисовываем локальную вкладку
+  // Принудительно заставляем перерисоваться локальную вкладку
   loadOnlyLocalNotes();
 }
 
@@ -180,7 +178,6 @@ function buildCardHTML(note, isRecommendation = false) {
     `;
   }
 
-  // На ленте рекомендаций скрываем кнопку локального удаления крестиком
   const deleteBtnHtml = isRecommendation 
     ? `<button class="delete-btn" style="display:none;">×</button>`
     : `<button class="delete-btn" onclick="deleteNote(event, ${note.id})">×</button>`;
@@ -197,7 +194,7 @@ function buildCardHTML(note, isRecommendation = false) {
   `;
 }
 
-// --- 5. ОТРИСОВКА ЛОКАЛЬНЫХ ЗАМЕТОК (ВКЛАДКА "ПИСАТЬ") ---
+// --- 5. ОТРИСОВКА ЛОКАЛЬНЫХ ЗАМЕТОК ---
 function loadOnlyLocalNotes() {
   const myFeed = document.getElementById('myFeed');
   if (!myFeed) return;
@@ -216,14 +213,16 @@ function loadOnlyLocalNotes() {
     cardMy.innerHTML = buildCardHTML(note, false);
     cardMy.onclick = (e) => {
       if (!e.target.closest('.delete-btn') && !e.target.closest('.liquid-audio-player')) {
-        if (typeof window.openOverlay === 'function') window.openOverlay(note.text ? escapeHTML(note.text) : "Медиазаметка");
+        try {
+          if (typeof window.openOverlay === 'function') window.openOverlay(note.text ? escapeHTML(note.text) : "Медиазаметка");
+        } catch(err) { console.log(err); }
       }
     };
     myFeed.appendChild(cardMy);
   });
 }
 
-// --- 6. ХОСТИНГ ЖИВОГО СТРИМА (ВКЛАДКА "РЕКОМЕНДАЦИИ") ---
+// --- 6. ХОСТИНГ ЖИВОГО СТРИМА С ЗАЩИТОЙ ОТ СБОЕВ РЕНДЕРА ---
 function listenToOnlineRecommendations() {
   const recFeed = document.getElementById('recFeed');
   if (!recFeed) return;
@@ -252,23 +251,27 @@ function listenToOnlineRecommendations() {
     onlinePosts.forEach(note => {
       const cardRec = document.createElement('div');
       cardRec.className = 'glass-card';
-      cardRec.innerHTML = buildCardHTML(note, true); // Передаем true, чтобы скрыть крестик
+      cardRec.innerHTML = buildCardHTML(note, true);
       
       cardRec.onclick = (e) => {
         if (!e.target.closest('.liquid-audio-player')) {
-          if (typeof window.openOverlay === 'function') {
-            window.openOverlay(note.text ? escapeHTML(note.text) : "Медиазаметка");
-          }
+          try {
+            if (typeof window.openOverlay === 'function') {
+              window.openOverlay(note.text ? escapeHTML(note.text) : "Медиазаметка");
+            }
+          } catch(err) { console.log(err); }
         }
       };
 
       recFeed.appendChild(cardRec);
     });
 
-    // Запускаем эффект суточного затухания, если подключен файл online-preview.js
-    if (typeof window.applyTimeDissolveEffect === 'function') {
-      window.applyTimeDissolveEffect();
-    }
+    // Безопасный вызов эффектов растворения времени
+    try {
+      if (typeof window.applyTimeDissolveEffect === 'function') {
+        window.applyTimeDissolveEffect();
+      }
+    } catch(err) { console.log(err); }
   });
 }
 
