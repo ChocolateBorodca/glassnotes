@@ -1,70 +1,33 @@
 // --- ОНЛАЙН СИНХРОНИЗАЦИЯ ЛЕНТЫ ЧЕРЕЗ FIREBASE ---
 import { ref, push, onValue } from "https://gstatic.com";
 
-// Перехватываем функции сразу при чтении файла
-window.sendPost = sendPostWithOnlineSync;
-
-setTimeout(() => {
-  // Намертво привязываем клик кнопки «Отправить» к сетевой отправке
-  const submitBtn = document.querySelector('.submit-glass-btn');
-  if (submitBtn) {
-    submitBtn.removeAttribute('onclick');
-    submitBtn.addEventListener('click', sendPostWithOnlineSync);
-  }
-
-  // Запускаем прослушивание живой базы для вкладки Рекомендации
-  listenToOnlineRecommendations();
-}, 100);
-
-// --- 1. УМНАЯ ОТПРАВКА: ЛИЧНОЕ В LOCALSTORAGE, ПУБЛИЧНОЕ В ОБЛАКО ---
-function sendPostWithOnlineSync() {
-  const textarea = document.getElementById('noteText');
-  const text = textarea.value.trim();
-  
-  if (!text && !window.recordedAudioBase64) return;
-
-  const currentAuthor = localStorage.getItem('notes_club_user') || 'Аноним';
-  const postDate = new Date().toLocaleString('ru-RU', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' });
-  const scope = window.currentScope || 'private';
-
-  const newNote = {
-    id: Date.now(),
-    text: text,
-    audio: window.recordedAudioBase64 || null,
-    scope: scope,
-    author: currentAuthor,
-    date: postDate
-  };
-
-  // Если ПУБЛИЧНОЕ — отправляем в глобальную базу Firebase
-  if (scope === 'public') {
+window.sendPostWithOnlineSync = (preparedNote) => {
+  if (preparedNote && preparedNote.scope === 'public') {
     try {
       const postsRef = ref(window.db, 'global_posts');
-      push(postsRef, newNote);
+      push(postsRef, preparedNote);
       console.log("📡 Публичный пост успешно улетел в онлайн-космос Firebase!");
     } catch (err) {
       console.error("Ошибка отправки в облако:", err);
     }
   }
-
-  // В любом случае дублируем в локальную историю "Заметки" автора
-  let localNotes = JSON.parse(localStorage.getItem('obsidian_notes') || '[]');
-  localNotes.unshift(newNote);
-  localStorage.setItem('obsidian_notes', JSON.stringify(localNotes));
-
-  // Очистка интерфейса ввода
-  textarea.value = '';
-  window.recordedAudioBase64 = null;
-  const hf = document.getElementById('hidden-audio-file');
-  if (hf) hf.value = '';
-  textarea.placeholder = "Зафиксируй состояние или зажми микрофон...";
   
   if (typeof window.loadLocalNotes === 'function') {
     window.loadLocalNotes();
   }
-}
+};
 
-// --- 2. ЖИВОЙ ПОТОК: СКАЧИВАНИЕ ИЗ СЕТИ В РЕАЛЬНОМ ВРЕМЕНИ ---
+setTimeout(() => {
+  const submitBtn = document.querySelector('.submit-glass-btn');
+  if (submitBtn) {
+    submitBtn.removeAttribute('onclick');
+    submitBtn.addEventListener('click', () => {
+      if (typeof window.sendPost === 'function') window.sendPost();
+    });
+  }
+  listenToOnlineRecommendations();
+}, 150);
+
 function listenToOnlineRecommendations() {
   const recFeed = document.getElementById('recFeed');
   if (!recFeed) return;
@@ -72,9 +35,8 @@ function listenToOnlineRecommendations() {
   const postsRef = ref(window.db, 'global_posts');
 
   onValue(postsRef, (snapshot) => {
-    recFeed.innerHTML = ''; // Очищаем старые посты
+    recFeed.innerHTML = ''; 
 
-    // Базовый системный пост
     recFeed.innerHTML = `
       <div class="glass-card">
         <div class="card-author">@system</div>
@@ -89,7 +51,6 @@ function listenToOnlineRecommendations() {
     const data = snapshot.val();
     if (!data) return;
 
-    // Сортируем массив, чтобы свежие онлайн-посты были сверху
     const onlinePosts = Object.values(data).reverse();
 
     onlinePosts.forEach(note => {
