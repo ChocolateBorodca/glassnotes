@@ -2,10 +2,10 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Obsidian</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Notes Club</title>
   
-  <!-- PWA настройки и иконка -->
+  <!-- PWA настройки -->
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#000000">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -14,10 +14,12 @@
 
   <style>
     :root {
-      --bg-color: #000000;
-      --text-main: #e2e2e2;
-      --text-muted: #444444;
-      --accent: #61afef;
+      --glass-bg: rgba(255, 255, 255, 0.03);
+      --glass-border: rgba(255, 255, 255, 0.08);
+      --glass-shine: rgba(255, 255, 255, 0.12);
+      --text-main: #ffffff;
+      --text-muted: rgba(255, 255, 255, 0.4);
+      --accent: rgba(255, 255, 255, 0.9);
     }
 
     * {
@@ -25,281 +27,335 @@
       margin: 0;
       padding: 0;
       -webkit-tap-highlight-color: transparent;
+      user-select: none;
     }
 
     body {
-      background-color: var(--bg-color);
+      background-color: #000000;
       color: var(--text-main);
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
       min-height: 100vh;
       display: flex;
       justify-content: center;
-      padding: 25px 20px;
+      padding: calc(30px + env(safe-area-inset-top)) 20px calc(20px + env(safe-area-inset-bottom));
+      overflow-x: hidden;
+      position: relative;
     }
 
-    .app-wrapper {
+    /* Холст для полноэкранной анимации звуковых волн от кнопок */
+    #wave-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 999;
+    }
+
+    .app-container {
       width: 100%;
-      max-width: 600px;
+      max-width: 500px;
       display: flex;
       flex-direction: column;
+      position: relative;
+      z-index: 10;
     }
 
-    .header {
+    /* Верхняя панель */
+    .header-panel {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding-bottom: 20px;
-      font-size: 12px;
-      letter-spacing: 1px;
-      font-weight: 500;
+      margin-bottom: 25px;
     }
 
-    .logo-area {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      color: var(--text-main);
+    .brand-title {
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      background: linear-gradient(180deg, #ffffff 0%, rgba(255, 255, 255, 0.6) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
     }
 
-    .logo-img {
-      width: 14px;
-      height: 14px;
-      object-fit: cover;
-      opacity: 0.7;
-    }
-
-    #ambient-status {
+    .music-badge {
+      font-size: 11px;
+      letter-spacing: 0.5px;
       color: var(--text-muted);
-      transition: color 0.3s;
+      text-transform: uppercase;
     }
 
-    .tabs {
-      display: flex;
-      gap: 25px;
-      margin-bottom: 30px;
+    /* Длинные стеклянные кнопки сверху */
+    .main-tabs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 20px;
     }
 
-    .tab {
-      background: none;
-      border: none;
+    /* Базовый стиль ультра-стекла Apple Liquid Glass */
+    .liquid-glass-btn {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-top: 1px solid var(--glass-shine);
+      border-radius: 16px;
       color: var(--text-muted);
+      padding: 16px;
       font-family: inherit;
-      cursor: pointer;
       font-size: 15px;
-      font-weight: 500;
-      padding: 5px 0;
-      transition: color 0.2s;
+      font-weight: 600;
+      cursor: pointer;
+      backdrop-filter: blur(40px) saturate(220%);
+      -webkit-backdrop-filter: blur(40px) saturate(220%);
+      box-shadow: inset 0 1px 1px rgba(255,255,255,0.1), 0 4px 24px rgba(0,0,0,0.4);
+      transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+      text-align: center;
     }
 
-    .tab.active {
+    .liquid-glass-btn.active {
       color: var(--text-main);
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.25);
+      box-shadow: inset 0 1px 2px rgba(255,255,255,0.2), 0 12px 30px rgba(0,0,0,0.6);
+      transform: scale(1.01);
+    }
+
+    /* Центральный блок ввода */
+    .input-glass-panel {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-top: 1px solid var(--glass-shine);
+      border-radius: 24px;
+      padding: 20px;
+      backdrop-filter: blur(50px) saturate(210%);
+      -webkit-backdrop-filter: blur(50px) saturate(210%);
+      box-shadow: inset 0 1px 2px rgba(255,255,255,0.05), 0 10px 40px rgba(0,0,0,0.5);
+      margin-bottom: 15px;
+      position: relative;
     }
 
     textarea {
       width: 100%;
-      height: 140px;
+      height: 130px;
       background: transparent;
       border: none;
-      color: #ffffff;
+      color: var(--text-main);
       font-family: inherit;
       font-size: 16px;
-      line-height: 1.6;
+      line-height: 1.5;
       resize: none;
       outline: none;
-      margin-bottom: 10px;
+      user-select: text;
     }
 
     textarea::placeholder {
       color: var(--text-muted);
     }
 
-    button.btn-main {
-      background: none;
-      border: none;
-      color: var(--text-muted);
-      font-family: inherit;
-      font-size: 14px;
+    /* Кнопка записи голоса внутри блока (справа в углу) */
+    .mic-glass-button {
+      position: absolute;
+      right: 18px;
+      bottom: 18px;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--glass-border);
+      border-top: 1px solid var(--glass-shine);
+      display: flex;
+      justify-content: center;
+      align-items: center;
       cursor: pointer;
-      align-self: flex-start;
-      padding: 5px 0;
-      transition: color 0.2s;
-      margin-bottom: 40px;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      transition: all 0.2s ease;
+      z-index: 20;
     }
 
-    button.btn-main:hover {
-      color: var(--text-main);
+    .mic-glass-button.recording {
+      background: rgba(255, 59, 48, 0.2);
+      border-color: rgba(255, 59, 48, 0.4);
+      box-shadow: 0 0 20px rgba(255, 59, 48, 0.3);
+      transform: scale(1.1);
     }
 
-    .feed {
-      display: flex;
-      flex-direction: column;
-      gap: 30px;
+    .mic-icon {
+      width: 18px;
+      height: 18px;
+      fill: var(--text-main);
+      transition: fill 0.2s;
     }
 
-    .note-card {
-      background: transparent;
-      border: none;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
+    .mic-glass-button.recording .mic-icon {
+      fill: #ff453a;
     }
 
-    .note-text {
+    /* Переключатели приватности (под полем ввода) */
+    .privacy-selectors {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .privacy-btn {
+      padding: 12px;
+      font-size: 13px;
+      border-radius: 12px;
+    }
+
+    /* Нижняя длинная стеклянная кнопка Отправить */
+    .submit-glass-btn {
+      width: 100%;
+      padding: 18px;
       font-size: 16px;
-      line-height: 1.6;
+      letter-spacing: 0.3px;
+      margin-bottom: 30px;
+    }
+
+    /* Ленты постов */
+    .stream-feed {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .glass-card {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--glass-border);
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      padding: 20px;
+      border-radius: 20px;
+      backdrop-filter: blur(30px);
+      -webkit-backdrop-filter: blur(30px);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    }
+
+    .card-text {
+      font-size: 16px;
+      line-height: 1.5;
+      margin-bottom: 12px;
       word-break: break-word;
     }
 
-    .note-date {
+    .card-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
       font-size: 11px;
       color: var(--text-muted);
+      text-transform: uppercase;
       letter-spacing: 0.5px;
     }
 
-    .hidden {
-      display: none !important;
+    /* Кастомный жидкокристаллический плеер для голосовых заметок */
+    .liquid-audio-player {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-top: 1px solid rgba(255, 255, 255, 0.15);
+      padding: 12px 16px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 4px;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
     }
+
+    .play-pause-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.1);
+      cursor: pointer;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .play-icon {
+      width: 0; height: 0;
+      border-top: 6px solid transparent;
+      border-bottom: 6px solid transparent;
+      border-left: 10px solid #ffffff;
+      margin-left: 2px;
+    }
+
+    .play-pause-btn.playing .play-icon {
+      border: none;
+      width: 10px; height: 12px;
+      border-left: 3px solid #ffffff;
+      border-right: 3px solid #ffffff;
+    }
+
+    .player-timeline {
+      flex: 1;
+      height: 4px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 2px;
+      position: relative;
+      cursor: pointer;
+    }
+
+    .player-progress {
+      position: absolute;
+      top: 0; left: 0; height: 100%;
+      background: #ffffff;
+      border-radius: 2px;
+      width: 0%;
+    }
+
+    .player-duration {
+      font-size: 11px;
+      font-family: monospace;
+      color: var(--text-muted);
+    }
+
+    .hidden { display: none !important; }
   </style>
 </head>
 <body>
 
-  <div class="app-wrapper">
-    <div class="header">
-      <div class="logo-area">
-        <img src="logo.png" alt="" class="logo-img" onerror="this.style.display='none'">
-        <span>OBSIDIAN // v1.0</span>
-      </div>
-      <span id="ambient-status">ambient: off</span>
+  <!-- Холст для расходящихся звуковых волн -->
+  <canvas id="wave-canvas"></canvas>
+
+  <div class="app-container">
+    <div class="header-panel">
+      <div class="brand-title">notes club</div>
+      <div class="music-badge" id="music-status">ambient: off</div>
     </div>
 
-    <div class="tabs">
-      <button id="tabMy" class="tab active" onclick="switchTab('my')">Заметки</button>
-      <button id="tabRec" class="tab" onclick="switchTab('rec')">Рекомендации</button>
+    <!-- Верхние длинные кнопки -->
+    <div class="main-tabs">
+      <button id="tabMy" class="liquid-glass-btn active" onclick="switchTab('my')">писать</button>
+      <button id="tabRec" class="liquid-glass-btn" onclick="switchTab('rec')">рекомендации</button>
     </div>
 
-    <div id="inputSection" style="display: flex; flex-direction: column;">
-      <textarea id="noteText" placeholder="Напиши что-нибудь..."></textarea>
-      <button class="btn-main" onclick="addNote()">// создать себя</button>
-    </div>
-
-    <div id="myFeed" class="feed"></div>
-    <div id="recFeed" class="feed hidden">
-      <div class="note-card">
-        <div class="note-text">Всё вокруг кажется симуляцией, пока ты не зафиксируешь это здесь.</div>
-        <div class="note-date">системный поток // рекомендации</div>
-      </div>
-    </div>
-  </div>
-
-  <script>
-    // --- PWA РЕГИСТРАЦИЯ ---
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw.js').catch(err => console.log(err));
-      });
-    }
-
-    // --- ЛОГИКА ПРИЛОЖЕНИЯ ---
-    let currentTab = 'my';
-
-    window.addEventListener('DOMContentLoaded', () => {
-      loadNotes();
-    });
-
-    function loadNotes() {
-      const feed = document.getElementById('myFeed');
-      feed.innerHTML = '';
-      let notes = JSON.parse(localStorage.getItem('obsidian_notes') || '[]');
-      
-      if(notes.length === 0) {
-        feed.innerHTML = '<div style="color: var(--text-muted); font-size: 14px; padding: 10px 0;">Поток пуст...</div>';
-        return;
-      }
-
-      notes.forEach(note => {
-        const card = document.createElement('div');
-        card.className = 'note-card';
-        card.innerHTML = `
-          <div class="note-text">${escapeHTML(note.text)}</div>
-          <div class="note-date">${note.date}</div>
-        `;
-        feed.appendChild(card);
-      });
-    }
-
-    function addNote() {
-      initAudio();
-      const textarea = document.getElementById('noteText');
-      const text = textarea.value.trim();
-      if (!text) return;
-
-      let notes = JSON.parse(localStorage.getItem('obsidian_notes') || '[]');
-      const newNote = {
-        text: text,
-        date: new Date().toLocaleString('ru-RU', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' }).replace(',', '')
-      };
-
-      notes.unshift(newNote);
-      localStorage.setItem('obsidian_notes', JSON.stringify(notes));
-      textarea.value = '';
-      loadNotes();
-    }
-
-    function switchTab(tab) {
-      initAudio();
-      currentTab = tab;
-      
-      document.getElementById('tabMy').classList.toggle('active', tab === 'my');
-      document.getElementById('tabRec').classList.toggle('active', tab === 'rec');
-      
-      document.getElementById('myFeed').classList.toggle('hidden', tab !== 'my');
-      document.getElementById('recFeed').classList.toggle('hidden', tab !== 'rec');
-      
-      document.getElementById('inputSection').classList.toggle('hidden', tab !== 'my');
-    }
-
-    function escapeHTML(str) {
-      return str.replace(/[&<>"']/g, tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[tag] || tag));
-    }
-
-    // --- МАТЕМАТИЧЕСКИЙ ЭМБИЕНТ ---
-    let audioCtx = null;
-
-    function initAudio() {
-      if (audioCtx) return; 
-      try {
-        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        document.getElementById('ambient-status').innerText = "ambient: on";
-        document.getElementById('ambient-status').style.color = "#ffffff";
+    <!-- Блок создания контента -->
+    <div id="creatorSection">
+      <div class="input-glass-panel">
+        <textarea id="noteText" placeholder="Зафиксируй состояние или зажми микрофон..."></textarea>
         
-        createOscillator(110, 0.25, -0.6); 
-        createOscillator(165, 0.20, 0.6);  
-      } catch(e) {}
-    }
+        <!-- Кнопка микрофона -->
+        <div id="micBtn" class="mic-glass-button">
+          <svg class="mic-icon" viewBox="0 0 24 24">
+            <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.42 2.72 6.2 6 6.72V21h2v-3.28c3.28-.52 6-3.3 6-6.72h-1.7z"/>
+          </svg>
+        </div>
+      </div>
 
-    function createOscillator(freq, volume, pan) {
-      const osc = audioCtx.createOscillator();
-      const gainNode = audioCtx.createGain();
-      const pando = audioCtx.createStereoPanner ? audioCtx.createStereoPanner() : null;
+      <!-- Кнопки личное и публичное -->
+      <div class="privacy-selectors">
+        <button id="scopePrivate" class="liquid-glass-btn privacy-btn active" onclick="setScope('private')">личное</button>
+        <button id="scopePublic" class="liquid-glass-btn privacy-btn" onclick="setScope('public')">публичное</button>
+      </div>
 
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-      gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
-      gainNode.gain.linearRampToValueAtTime(volume, audioCtx.currentTime + 3);
+      <!-- Длинная кнопка отправить -->
+      <button class="liquid-glass-btn submit-glass-btn" onclick="sendPost()">отправить</button>
+    </div>
 
-      setInterval(() => {
-        let nextVol = Math.random() * volume + 0.05;
-        gainNode.gain.linearRampToValueAtTime(nextVol, audioCtx.currentTime + 4);
-      }, 4000);
-
-      if (pando) {
-        pando.pan.setValueAtTime(pan, audioCtx.currentTime);
-        osc.connect(gainNode).connect(pando).connect(audioCtx.destination);
-      } else {
-        osc.connect(gainNode).connect(audioCtx.destination);
-      }
-      osc.start();
-    }
-  </script>
-</body>
-</html>
+    <!-- Ленты новостей -->
