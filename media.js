@@ -2,8 +2,18 @@
 window.addEventListener('DOMContentLoaded', () => {
   injectMediaStyles();
   injectUploadButton();
+  
+  // Перехватываем стандартные функции из глобальной области видимости
   window.sendPost = sendPostWithMedia;
   window.loadLocalNotes = loadNotesWithMediaAndAuthor;
+  
+  // Дополнительно перестрахуемся и перехватим нажатие на саму кнопку из index.html
+  const submitBtn = document.querySelector('.submit-glass-btn');
+  if (submitBtn) {
+    submitBtn.removeAttribute('onclick');
+    submitBtn.addEventListener('click', sendPostWithMedia);
+  }
+
   loadLocalNotes();
 });
 
@@ -122,7 +132,6 @@ function sendPostWithMedia() {
   loadLocalNotes();
 }
 
-// Создание HTML-строки для карточки (чтобы не ломать события клонированием)
 function buildCardHTML(note) {
   let audioHtml = '';
   if (note.audio) {
@@ -178,7 +187,7 @@ function loadNotesWithMediaAndAuthor() {
   }
 
   notes.forEach(note => {
-    // Рендерим карточку для вкладки "Заметки"
+    // Карточка для вкладки Заметки
     const cardMy = document.createElement('div');
     cardMy.className = 'glass-card';
     cardMy.innerHTML = buildCardHTML(note);
@@ -189,7 +198,7 @@ function loadNotesWithMediaAndAuthor() {
     };
     myFeed.appendChild(cardMy);
 
-    // Если публикация публичная — создаем отдельную независимую карточку для рекомендаций
+    // Карточка для вкладки Рекомендации (если публичное)
     if (note.scope === 'public') {
       const cardRec = document.createElement('div');
       cardRec.className = 'glass-card';
@@ -203,7 +212,6 @@ function loadNotesWithMediaAndAuthor() {
     }
   });
 
-  // Запускаем эффект суточного затухания, если подключен файл online-preview.js
   if (typeof applyTimeDissolveEffect === 'function') {
     applyTimeDissolveEffect();
   }
