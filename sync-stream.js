@@ -8,6 +8,7 @@ window.addEventListener('DOMContentLoaded', () => {
   // Перезаписываем глобальные функции управления заметками
   window.sendPost = sendPostToNodeServer;
   window.loadLocalNotes = loadOnlyLocalNotes;
+  window.deleteNote = deleteNoteFromLocal; // Фиксируем безопасное удаление
 
   // Намертво привязываем клик кнопки «Отправить» к нашему новому серверу
   setTimeout(() => {
@@ -83,7 +84,6 @@ function listenToNodeRecommendations() {
   if (!recFeed) return;
 
   async function fetchPosts() {
-    // Делаем запрос только если пользователь находится на вкладке рекомендаций
     if (recFeed.classList.contains('hidden')) return;
 
     try {
@@ -91,7 +91,7 @@ function listenToNodeRecommendations() {
       if (!response.ok) return;
       const onlinePosts = await response.json();
 
-      recFeed.innerHTML = ''; // Очищаем ленту для свежих данных
+      recFeed.innerHTML = ''; 
 
       onlinePosts.forEach(note => {
         const cardRec = document.createElement('div');
@@ -111,7 +111,6 @@ function listenToNodeRecommendations() {
         recFeed.appendChild(cardRec);
       });
 
-      // Применяем суточный эффект затухания, если плагин подключен
       if (typeof window.applyTimeDissolveEffect === 'function') {
         window.applyTimeDissolveEffect();
       }
@@ -121,12 +120,22 @@ function listenToNodeRecommendations() {
     }
   }
 
-  // Запрашиваем новые посты каждые 3 секунды, симулируя Websocket-соединение
   fetchPosts();
   setInterval(fetchPosts, 3000);
 }
 
-// --- 3. ШАБЛОН КАРТОЧЕК И ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ---
+// --- 3. ФУНКЦИЯ ЛОКАЛЬНОГО УДАЛЕНИЯ ЗАМЕТКИ ---
+function deleteNoteFromLocal(event, id) {
+  if (event) event.stopPropagation(); // Предотвращаем открытие оверлея
+  
+  let notes = JSON.parse(localStorage.getItem('obsidian_notes') || '[]');
+  notes = notes.filter(note => note.id !== id);
+  localStorage.setItem('obsidian_notes', JSON.stringify(notes));
+  
+  loadOnlyLocalNotes();
+}
+
+// --- 4. ШАБЛОН КАРТОЧЕК И ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ---
 function buildCardHTML(note, isRecommendation = false) {
   let audioHtml = '';
   if (note.audio) {
