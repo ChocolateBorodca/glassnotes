@@ -2,21 +2,19 @@
 window.addEventListener('DOMContentLoaded', () => {
   injectMediaStyles();
   injectUploadButton();
-  // Перезаписываем отправку и загрузку заметок нашей новой расширенной логикой
   window.sendPost = sendPostWithMedia;
   window.loadLocalNotes = loadNotesWithMediaAndAuthor;
-  // Сразу перерисовываем ленту с учетом новых полей
   loadLocalNotes();
 });
 
-// --- 1. ДОБАВЛЕНИЕ СТИЛЕЙ ДЛЯ КНОПКИ ЗАГРУЗКИ ---
 function injectMediaStyles() {
+  if (document.getElementById('media-injected-styles')) return;
   const style = document.createElement('style');
+  style.id = 'media-injected-styles';
   style.innerHTML = `
-    /* Кнопка скрепки для загрузки файлов */
     .upload-glass-button {
       position: absolute;
-      right: 70px; /* Ставим левее микрофона */
+      right: 70px; 
       bottom: 18px;
       width: 44px;
       height: 44px;
@@ -43,7 +41,6 @@ function injectMediaStyles() {
       fill: var(--text-main);
       opacity: 0.7;
     }
-    /* Стиль автора над текстом заметки */
     .card-author {
       font-size: 13px;
       font-weight: 600;
@@ -56,12 +53,10 @@ function injectMediaStyles() {
   document.head.appendChild(style);
 }
 
-// --- 2. ВШИВАНИЕ КНОПКИ ЗАГРУЗКИ ТРЕКОВ В ИНТЕРФЕЙС ---
 function injectUploadButton() {
   const inputPanel = document.querySelector('.input-glass-panel');
   if (!inputPanel || document.getElementById('uploadBtn')) return;
 
-  // Создаем скрытый системный инпут для выбора файлов
   const fileInput = document.createElement('input');
   fileInput.type = 'file';
   fileInput.id = 'hidden-audio-file';
@@ -69,7 +64,6 @@ function injectUploadButton() {
   fileInput.style.display = 'none';
   document.body.appendChild(fileInput);
 
-  // Создаем красивую стеклянную кнопку со скрепкой
   const uploadBtn = document.createElement('div');
   uploadBtn.id = 'uploadBtn';
   uploadBtn.className = 'upload-glass-button';
@@ -79,12 +73,10 @@ function injectUploadButton() {
     </svg>
   `;
 
-  // Вешаем событие клика: нажали на скрепку -> открылся выбор файлов на устройстве
   uploadBtn.addEventListener('click', () => {
     fileInput.click();
   });
 
-  // Обрабатываем выбор файла
   fileInput.addEventListener('change', (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -92,49 +84,74 @@ function injectUploadButton() {
     const reader = new FileReader();
     reader.readAsDataURL(file);
     reader.onloadend = () => {
-      // Сохраняем загруженный трек в ту же переменную, куда пишется голос
       window.recordedAudioBase64 = reader.result;
-      document.getElementById('noteText').placeholder = `🎵 Трек "${file.name.substring(0, 15)}..." готов к отправке`;
+      document.getElementById('noteText').placeholder = `🎵 Трек готов к отправке`;
     };
   });
 
-  // Вставляем кнопку внутрь стеклянной панели
   inputPanel.appendChild(uploadBtn);
 }
 
-// --- 3. ОБНОВЛЕННАЯ ОТПРАВКА ЗАМЕТКИ С ИМЕНЕМ АВТОРА ---
 function sendPostWithMedia() {
   const textarea = document.getElementById('noteText');
   const text = textarea.value.trim();
   
   if (!text && !window.recordedAudioBase64) return;
 
-  // Извлекаем имя пользователя, вошедшего через экран авторизации
   let currentAuthor = localStorage.getItem('notes_club_user') || 'Аноним';
-
   let notes = JSON.parse(localStorage.getItem('obsidian_notes') || '[]');
+  
   const newNote = {
     id: Date.now(),
     text: text,
     audio: window.recordedAudioBase64,
     scope: window.currentScope || 'private',
-    author: currentAuthor, // Привязываем имя автора к структуре заметки
+    author: currentAuthor,
     date: new Date().toLocaleString('ru-RU', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' })
   };
 
   notes.unshift(newNote);
   localStorage.setItem('obsidian_notes', JSON.stringify(notes));
 
-  // Полностью очищаем поля ввода
   textarea.value = '';
   window.recordedAudioBase64 = null;
-  document.getElementById('hidden-audio-file').value = '';
+  const hf = document.getElementById('hidden-audio-file');
+  if (hf) hf.value = '';
   textarea.placeholder = "Зафиксируй состояние или зажми микрофон...";
   
   loadLocalNotes();
 }
 
-// --- 4. ОТРЕНДЕРИТЬ ЛЕНТУ С УЧЕТОМ АВТОРОВ И ТРЕКОВ ---
+// Создание HTML-строки для карточки (чтобы не ломать события клонированием)
+function buildCardHTML(note) {
+  let audioHtml = '';
+  if (note.audio) {
+    audioHtml = `
+      <div class="liquid-audio-player">
+        <button class="play-pause-btn" onclick="toggleAudio('audio-${note.id}')">
+          <div class="play-icon"></div>
+        </button>
+        <div class="player-timeline" onclick="seekAudio(event, 'audio-${note.id}')">
+          <div id="progress-audio-${note.id}" class="player-progress"></div>
+        </div>
+        <span id="time-audio-${note.id}" class="player-duration">0:00</span>
+        <audio id="audio-${note.id}" src="${note.audio}" ontimeupdate="updateAudioProgress('audio-${note.id}')" onended="audioEnded('audio-${note.id}')"></audio>
+      </div>
+    `;
+  }
+
+  return `
+    <button class="delete-btn" onclick="deleteNote(event, ${note.id})">×</button>
+    <div class="card-author">@${escapeHTML(note.author || "Аноним")}</div>
+    ${note.text ? `<div class="card-text">${escapeHTML(note.text)}</div>` : ''}
+    ${audioHtml}
+    <div class="card-meta">
+      <span>${note.date}</span>
+      <span>${note.scope === 'public' ? 'публичное' : 'личное'}</span>
+    </div>
+  `;
+}
+
 function loadNotesWithMediaAndAuthor() {
   const myFeed = document.getElementById('myFeed');
   const recFeed = document.getElementById('recFeed');
@@ -161,53 +178,33 @@ function loadNotesWithMediaAndAuthor() {
   }
 
   notes.forEach(note => {
-    const card = document.createElement('div');
-    card.className = 'glass-card';
-    
-    card.onclick = (e) => {
+    // Рендерим карточку для вкладки "Заметки"
+    const cardMy = document.createElement('div');
+    cardMy.className = 'glass-card';
+    cardMy.innerHTML = buildCardHTML(note);
+    cardMy.onclick = (e) => {
       if (!e.target.closest('.delete-btn') && !e.target.closest('.liquid-audio-player')) {
-        let contentToView = note.text ? escapeHTML(note.text) : "Медиазаметка";
-        if (typeof openOverlay === 'function') openOverlay(contentToView);
+        if (typeof openOverlay === 'function') openOverlay(note.text ? escapeHTML(note.text) : "Медиазаметка");
       }
     };
-    
-    let audioHtml = '';
-    if (note.audio) {
-      audioHtml = `
-        <div class="liquid-audio-player">
-          <button class="play-pause-btn" onclick="toggleAudio('audio-${note.id}')">
-            <div class="play-icon"></div>
-          </button>
-          <div class="player-timeline" onclick="seekAudio(event, 'audio-${note.id}')">
-            <div id="progress-audio-${note.id}" class="player-progress"></div>
-          </div>
-          <span id="time-audio-${note.id}" class="player-duration">0:00</span>
-          <audio id="audio-${note.id}" src="${note.audio}" ontimeupdate="updateAudioProgress('audio-${note.id}')" onended="audioEnded('audio-${note.id}')"></audio>
-        </div>
-      `;
-    }
+    myFeed.appendChild(cardMy);
 
-    // Собираем карточку, где сверху гордо выводится имя её создателя через знак @
-    card.innerHTML = `
-      <button class="delete-btn" onclick="deleteNote(event, ${note.id})">×</button>
-      <div class="card-author">@${escapeHTML(note.author || "Аноним")}</div>
-      ${note.text ? `<div class="card-text">${escapeHTML(note.text)}</div>` : ''}
-      ${audioHtml}
-      <div class="card-meta">
-        <span>${note.date}</span>
-        <span>${note.scope === 'public' ? 'публичное' : 'личное'}</span>
-      </div>
-    `;
-
-    // Распределяем по двум вкладкам
+    // Если публикация публичная — создаем отдельную независимую карточку для рекомендаций
     if (note.scope === 'public') {
-      myFeed.appendChild(card.cloneNode(true));
-      const recCard = myFeed.lastChild;
-      if (typeof setupCardEvents === 'function') setupCardEvents(recCard, note);
-      
-      recFeed.insertBefore(card, recFeed.firstChild);
-    } else {
-      myFeed.appendChild(card);
+      const cardRec = document.createElement('div');
+      cardRec.className = 'glass-card';
+      cardRec.innerHTML = buildCardHTML(note);
+      cardRec.onclick = (e) => {
+        if (!e.target.closest('.delete-btn') && !e.target.closest('.liquid-audio-player')) {
+          if (typeof openOverlay === 'function') openOverlay(note.text ? escapeHTML(note.text) : "Медиазаметка");
+        }
+      };
+      recFeed.insertBefore(cardRec, recFeed.firstChild);
     }
   });
+
+  // Запускаем эффект суточного затухания, если подключен файл online-preview.js
+  if (typeof applyTimeDissolveEffect === 'function') {
+    applyTimeDissolveEffect();
+  }
 }
