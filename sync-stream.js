@@ -1,20 +1,20 @@
 // --- ОНЛАЙН СИНХРОНИЗАЦИЯ ЛЕНТЫ ЧЕРЕЗ FIREBASE ---
 import { ref, push, onValue } from "https://gstatic.com";
 
-window.addEventListener('DOMContentLoaded', () => {
-  // Перехватываем функцию отправки постов, чтобы публичные летели в сеть
-  window.sendPost = sendPostWithOnlineSync;
-  
-  // Принудительно перенаправляем клик кнопки на новую логику
+// Перехватываем функции сразу при чтении файла
+window.sendPost = sendPostWithOnlineSync;
+
+setTimeout(() => {
+  // Намертво привязываем клик кнопки «Отправить» к сетевой отправке
   const submitBtn = document.querySelector('.submit-glass-btn');
   if (submitBtn) {
     submitBtn.removeAttribute('onclick');
     submitBtn.addEventListener('click', sendPostWithOnlineSync);
   }
 
-  // Запускаем постоянное прослушивание онлайн-базы для вкладки Рекомендации
+  // Запускаем прослушивание живой базы для вкладки Рекомендации
   listenToOnlineRecommendations();
-});
+}, 100);
 
 // --- 1. УМНАЯ ОТПРАВКА: ЛИЧНОЕ В LOCALSTORAGE, ПУБЛИЧНОЕ В ОБЛАКО ---
 function sendPostWithOnlineSync() {
@@ -36,7 +36,7 @@ function sendPostWithOnlineSync() {
     date: postDate
   };
 
-  // ЕСЛИ ПУБЛИЧНОЕ — отправляем в глобальную базу Firebase Realtime Database
+  // Если ПУБЛИЧНОЕ — отправляем в глобальную базу Firebase
   if (scope === 'public') {
     try {
       const postsRef = ref(window.db, 'global_posts');
@@ -47,36 +47,34 @@ function sendPostWithOnlineSync() {
     }
   }
 
-  // В любом случае сохраняем в локальную историю "Мои заметки", чтобы автор видел свой пост
+  // В любом случае дублируем в локальную историю "Заметки" автора
   let localNotes = JSON.parse(localStorage.getItem('obsidian_notes') || '[]');
   localNotes.unshift(newNote);
   localStorage.setItem('obsidian_notes', JSON.stringify(localNotes));
 
-  // Полная очистка интерфейса ввода
+  // Очистка интерфейса ввода
   textarea.value = '';
   window.recordedAudioBase64 = null;
   const hf = document.getElementById('hidden-audio-file');
   if (hf) hf.value = '';
   textarea.placeholder = "Зафиксируй состояние или зажми микрофон...";
   
-  // Перерисовываем локальную ленту
   if (typeof window.loadLocalNotes === 'function') {
     window.loadLocalNotes();
   }
 }
 
-// --- 2. ЖИВОЙ ПОТОК: СКАЧИВАНИЕ РЕКОМЕНДАЦИЙ ИЗ СЕТИ В РЕАЛЬНОМ ВРЕМЕНИ ---
+// --- 2. ЖИВОЙ ПОТОК: СКАЧИВАНИЕ ИЗ СЕТИ В РЕАЛЬНОМ ВРЕМЕНИ ---
 function listenToOnlineRecommendations() {
   const recFeed = document.getElementById('recFeed');
   if (!recFeed) return;
 
   const postsRef = ref(window.db, 'global_posts');
 
-  // Вешаем живой триггер: как только кто-то в мире создаст пост, эта функция сработает сама без перезагрузки
   onValue(postsRef, (snapshot) => {
     recFeed.innerHTML = ''; // Очищаем старые посты
 
-    // Дефолтный приветственный пост системы
+    // Базовый системный пост
     recFeed.innerHTML = `
       <div class="glass-card">
         <div class="card-author">@system</div>
@@ -91,7 +89,7 @@ function listenToOnlineRecommendations() {
     const data = snapshot.val();
     if (!data) return;
 
-    // Превращаем объект Firebase в массив и разворачиваем, чтобы новые были сверху
+    // Сортируем массив, чтобы свежие онлайн-посты были сверху
     const onlinePosts = Object.values(data).reverse();
 
     onlinePosts.forEach(note => {
@@ -125,7 +123,6 @@ function listenToOnlineRecommendations() {
         </div>
       `;
 
-      // При клике на карточку открываем полноэкранный просмотр оверлея
       cardRec.onclick = (e) => {
         if (!e.target.closest('.liquid-audio-player')) {
           if (typeof window.openOverlay === 'function') {
@@ -134,11 +131,9 @@ function listenToOnlineRecommendations() {
         }
       };
 
-      // Вставляем карточку в ленту рекомендаций
       recFeed.appendChild(cardRec);
     });
 
-    // Запускаем эффект суточного затухания прозрачности, если плагин подключен
     if (typeof window.applyTimeDissolveEffect === 'function') {
       window.applyTimeDissolveEffect();
     }
