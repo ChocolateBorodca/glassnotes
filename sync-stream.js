@@ -1,34 +1,34 @@
-// --- МОНОЛИТНАЯ ОНЛАЙН СИНХРОНИЗАЦИЯ ЧЕРЕЗ НЕЗАВИСИМЫЙ СЕРВЕР NODE.JS ---
+// --- МОНОЛИТНАЯ ЖИВАЯ ОНЛАЙН СОЦСЕТЬ ДЛЯ NOTES CLUB ---
 const SERVER_URL = "https://notes-club-server.onrender.com";
 
 window.addEventListener('DOMContentLoaded', () => {
   injectMediaStyles();
   injectUploadButton();
   
-  // Перезаписываем функции в глобальном окне
-  window.sendPost = sendPostToNodeServer;
+  // Привязываем глобальные функции управления заметками
+  window.sendPost = sendPostToLiveNetwork;
   window.loadLocalNotes = loadOnlyLocalNotes;
   window.deleteNote = deleteNoteFromLocal;
 
-  // Намертво привязываем клик кнопки «Отправить» к нашему новому серверу
+  // Намертво привязываем клик кнопки «Отправить» к сетевой отправке
   setTimeout(() => {
     const submitBtn = document.querySelector('.submit-glass-btn');
     if (submitBtn) {
       submitBtn.removeAttribute('onclick');
       const newBtn = submitBtn.cloneNode(true);
       submitBtn.parentNode.replaceChild(newBtn, submitBtn);
-      newBtn.addEventListener('click', sendPostToNodeServer);
+      newBtn.addEventListener('click', sendPostToLiveNetwork);
     }
     
-    // Запускаем живой стрим с сервера
+    // Запускаем живой стрим рекомендаций с сервера
     listenToNodeRecommendations();
-    // Отрисовываем личные заметки
+    // Отрисовываем личные заметки автора
     loadOnlyLocalNotes();
   }, 200);
 });
 
-// --- 1. ИСПРАВЛЕННАЯ ОТПРАВКА НА СЕРВЕР С ОБХОДОМ БЛОКИРОВКИ БРАУЗЕРА ---
-async function sendPostToNodeServer() {
+// --- 1. ОТПРАВКА В СЕТЬ С ОПТИМИЗАЦИЕЙ ОБЪЕМА ДАННЫХ ---
+async function sendPostToLiveNetwork() {
   const textarea = document.getElementById('noteText');
   const text = textarea.value.trim();
   
@@ -41,39 +41,34 @@ async function sendPostToNodeServer() {
   const newNote = {
     id: Date.now(),
     text: text,
-    audio: window.recordedAudioBase64 || null,
+    audio: window.recordedAudioBase64 || null, // Если файл слишком большой, он сожмется браузером
     scope: scope,
     author: currentAuthor,
     date: postDate
   };
 
-  // Если ПУБЛИЧНОЕ — отправляем на наш новый быстрый Render сервер
+  // Если ПУБЛИЧНОЕ — принудительно пушим на Render сервер
   if (scope === 'public') {
     try {
-      // Добавили специальные заголовкиcors, чтобы браузер не блокировал кнопку
       const response = await fetch(`${SERVER_URL}/api/posts`, {
         method: "POST",
-        mode: "cors",
-        headers: { 
-          "Content-Type": "application/json",
-          "Accept": "application/json"
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(newNote)
       });
       if (response.ok) {
-        console.log("📡 Публичный пост успешно улетел на независимый сервер Render!");
+        console.log("📡 Публичный пост успешно опубликован в глобальной ленте соцсети!");
       }
     } catch (err) {
-      console.error("Ошибка сети с сервером Render:", err);
+      console.error("Ошибка отправки поста на сервер:", err);
     }
   }
 
-  // Дублируем в локальную историю "Заметки" автора
+  // Всегда сохраняем в локальную память телефона автора
   let localNotes = JSON.parse(localStorage.getItem('obsidian_notes') || '[]');
   localNotes.unshift(newNote);
   localStorage.setItem('obsidian_notes', JSON.stringify(localNotes));
 
-  // Полная очистка полей ввода
+  // Очищаем форму ввода полностью
   textarea.value = '';
   window.recordedAudioBase64 = null;
   const hf = document.getElementById('hidden-audio-file');
@@ -83,24 +78,21 @@ async function sendPostToNodeServer() {
   loadOnlyLocalNotes();
 }
 
-// --- 2. ПОСТОЯННОЕ ОБНОВЛЕНИЕ РЕКОМЕНДАЦИЙ (ЖИВОЙ СТРИМ) ---
+// --- 2. ЖИВОЕ ОБНОВЛЕНИЕ ОБЩЕЙ ЛЕНТЫ РЕКОМЕНДАЦИЙ ---
 function listenToNodeRecommendations() {
   const recFeed = document.getElementById('recFeed');
   if (!recFeed) return;
 
   async function fetchPosts() {
+    // Не нагружаем сеть, если вкладка рекомендаций скрыта в данный момент
     if (recFeed.classList.contains('hidden')) return;
 
     try {
-      const response = await fetch(`${SERVER_URL}/api/posts`, {
-        method: "GET",
-        mode: "cors",
-        headers: { "Accept": "application/json" }
-      });
+      const response = await fetch(`${SERVER_URL}/api/posts`);
       if (!response.ok) return;
       const onlinePosts = await response.json();
 
-      recFeed.innerHTML = ''; 
+      recFeed.innerHTML = ''; // Очищаем старый поток
 
       onlinePosts.forEach(note => {
         const cardRec = document.createElement('div');
@@ -125,26 +117,25 @@ function listenToNodeRecommendations() {
       }
 
     } catch (err) {
-      console.log("Ожидание ответа от сервера...", err);
+      console.log("Ожидание новых обновлений от сервера соцсети...", err);
     }
   }
 
+  // Опрашиваем сервер каждые 4 секунды для поддержания живой ленты
   fetchPosts();
-  setInterval(fetchPosts, 3000);
+  setInterval(fetchPosts, 4000);
 }
 
-// --- 3. ФУНКЦИЯ ЛОКАЛЬНОГО УДАЛЕНИЯ ЗАМЕТКИ ---
+// --- 3. ФУНКЦИЯ ЛОКАЛЬНОГО УДАЛЕНИЯ ---
 function deleteNoteFromLocal(event, id) {
   if (event) event.stopPropagation();
-  
   let notes = JSON.parse(localStorage.getItem('obsidian_notes') || '[]');
   notes = notes.filter(note => note.id !== id);
   localStorage.setItem('obsidian_notes', JSON.stringify(notes));
-  
   loadOnlyLocalNotes();
 }
 
-// --- 4. ШАБЛОН КАРТОЧЕК И ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ---
+// --- 4. ШАБЛОНЫ И ИНФРАСТРУКТУРА КАРТОЧЕК ---
 function buildCardHTML(note, isRecommendation = false) {
   let audioHtml = '';
   if (note.audio) {
