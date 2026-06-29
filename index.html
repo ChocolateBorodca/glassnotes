@@ -1,449 +1,302 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Notes club</title>
-    
-    <!-- СВЯЗЬ С ЛОКАЛЬНОЙ ИКОНКОЙ В РЕПОЗИТОРИИ GITHUB -->
-    <link rel="icon" type="image/png" href="logo.png">
-    <link rel="apple-touch-icon" sizes="180x180" href="logo.png">
-    <link rel="apple-touch-icon" href="logo.png">
-    <link rel="apple-touch-icon-precomposed" href="logo.png">
-    
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Notes club">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="theme-color" content="#000000">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Obsidian Note App</title>
+  
+  <!-- PWA настройки и иконка -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#000000">
+  <link rel="apple-touch-icon" href="logo.png">
 
-    <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif; }
-        
-        body, html {
-            height: 100%; overflow: hidden;
-            background: linear-gradient(135deg, #010101, #030304, #060608, #020202);
-            background-size: 400% 400%; animation: obsidianGradient 40s ease infinite;
-            display: flex; justify-content: center; align-items: center; user-select: none;
-        }
+  <style>
+    :root {
+      --bg-color: #0b0b0b;
+      --container-bg: #121212;
+      --border-color: #242424;
+      --text-main: #dc9264;
+      --text-muted: #5e5e5e;
+      --accent: #dc9264;
+    }
 
-        @keyframes obsidianGradient {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
-        /* ЭКРАН ВХОДА */
-        .auth-screen {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: #000000; z-index: 1000; display: flex; flex-direction: column;
-            justify-content: center; align-items: center; padding: 24px; transition: opacity 0.5s ease;
-        }
-        .auth-box {
-            width: 100%; max-width: 320px; background: rgba(15, 15, 18, 0.6); backdrop-filter: blur(30px);
-            padding: 30px; border-radius: 24px; border: 1px solid rgba(255,255,255,0.02);
-            text-align: center; box-shadow: 0 30px 60px rgba(0,0,0,0.9);
-        }
-        .auth-logo-img {
-            width: 84px; height: 84px; border-radius: 22px; margin-bottom: 18px;
-            border: 1px solid rgba(255,255,255,0.08); box-shadow: 0 12px 28px rgba(0,0,0,0.6);
-        }
-        .auth-box h2 { color: #fff; font-size: 24px; margin-bottom: 8px; font-weight: 700; letter-spacing: -0.5px; }
-        .auth-box p { color: rgba(255, 255, 255, 0.2); font-size: 13px; margin-bottom: 24px; }
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      font-family: monospace;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 15px;
+    }
 
-        /* КОНТЕЙНЕР ПРИЛОЖЕНИЯ */
-        .glass-container {
-            width: 100%; max-width: 380px; height: 85vh; max-height: 720px;
-            background: rgba(10, 10, 12, 0.45); backdrop-filter: blur(40px) saturate(200%);
-            -webkit-backdrop-filter: blur(40px) saturate(200%); border-radius: 28px;
-            border: 1px solid rgba(255, 255, 255, 0.03); padding: 24px; display: flex; flex-direction: column;
-            box-shadow: 0 40px 100px rgba(0, 0, 0, 0.95), inset 0 1px 0 rgba(255,255,255,0.01); margin: 16px; position: relative;
-        }
+    .app-container {
+      width: 100%;
+      max-width: 500px;
+      background: var(--container-bg);
+      border: 1px solid var(--border-color);
+      padding: 25px;
+      border-radius: 4px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.7);
+    }
 
-        .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .logo { color: #ffffff; font-size: 21px; font-weight: 700; letter-spacing: -0.5px; }
-        
-        .tabs { display: flex; background: rgba(255,255,255,0.015); padding: 3px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.01); }
-        .tab-btn {
-            padding: 8px 14px; background: none; border: none; color: rgba(255,255,255,0.3);
-            font-size: 13px; font-weight: 600; cursor: pointer; border-radius: 9px; transition: all 0.2s ease;
-        }
-        .tab-btn.active { background: rgba(255,255,255,0.06); color: #ffffff; }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 25px;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 15px;
+    }
 
-        /* ТУЛБАРЫ ЛЕНТЫ */
-        .sub-bar { display: flex; gap: 8px; margin-bottom: 16px; }
-        .sub-tab-btn {
-            flex: 1; padding: 10px; background: rgba(255,255,255,0.01); border: 1px solid rgba(255,255,255,0.02);
-            border-radius: 12px; color: rgba(255,255,255,0.35); font-size: 12px; font-weight: 600;
-            cursor: pointer; transition: all 0.2s ease; text-align: center;
-        }
-        .sub-tab-btn.active { background: rgba(255,255,255,0.05); color: #fff; border-color: rgba(255,255,255,0.08); }
+    .logo-area {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
 
-        /* ИНПУТЫ */
-        .glass-input {
-            width: 100%; padding: 15px 16px; background: rgba(255, 255, 255, 0.01);
-            border: 1px solid rgba(255, 255, 255, 0.025); border-radius: 14px; color: #ffffff;
-            font-size: 15px; outline: none; transition: all 0.25s ease; margin-bottom: 12px;
-        }
-        .glass-input::placeholder { color: rgba(255,255,255,0.15); }
-        .glass-input:focus { background: rgba(255, 255, 255, 0.02); border-color: rgba(255,255,255,0.08); }
-        .textarea-input { flex: 1; min-height: 160px; resize: none; margin-bottom: 16px; }
+    .logo-img {
+      width: 24px;
+      height: 24px;
+      object-fit: cover;
+    }
 
-        /* ПРИВАТНОСТЬ */
-        .privacy-selector { display: flex; gap: 8px; margin-bottom: 16px; }
-        .privacy-btn {
-            flex: 1; padding: 12px; background: rgba(255,255,255,0.01); border: 1px solid rgba(255,255,255,0.025);
-            border-radius: 12px; color: rgba(255,255,255,0.25); font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s;
-        }
-        .privacy-btn.active { background: rgba(255, 255, 255, 0.05); color: #ffffff; border-color: rgba(255,255,255,0.08); }
+    .tabs {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 20px;
+    }
 
-        .main-btn {
-            width: 100%; padding: 16px; background: #ffffff; border: none; border-radius: 14px;
-            color: #000000; font-size: 15px; font-weight: 700; letter-spacing: -0.2px;
-            cursor: pointer; transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        .main-btn:active { transform: scale(0.97); opacity: 0.9; }
+    .tab {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-family: monospace;
+      cursor: pointer;
+      font-size: 14px;
+      padding-bottom: 5px;
+    }
 
-        /* ОКНА */
-        .screen { display: none; flex-direction: column; flex: 1; min-height: 0; }
-        .screen.active { display: flex; }
-        .notes-list { flex: 1; overflow-y: auto; padding-right: 2px; scroll-behavior: smooth; }
-        .notes-list::-webkit-scrollbar { width: 0px; }
+    .tab.active {
+      color: var(--text-main);
+      border-bottom: 1px solid var(--accent);
+    }
 
-        /* КАРТОЧКА ЗАМЕТКИ */
-        .note-item {
-            background: rgba(255, 255, 255, 0.008) !important; border: 1px solid rgba(255, 255, 255, 0.015) !important;
-            padding: 16px; border-radius: 16px; color: #ffffff; margin-bottom: 12px; position: relative;
-            animation: appleSpawn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards; transition: all 0.2s ease; cursor: pointer; display: block;
-        }
-        .note-item:hover { background: rgba(255, 255, 255, 0.015) !important; border-color: rgba(255,255,255,0.04) !important; }
-        @keyframes appleSpawn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+    textarea {
+      width: 100%;
+      height: 100px;
+      background: #181818;
+      border: 1px solid var(--border-color);
+      color: #e0e0e0;
+      padding: 12px;
+      font-family: monospace;
+      resize: none;
+      outline: none;
+      margin-bottom: 12px;
+    }
 
-        .note-title { font-weight: 600; font-size: 15.5px; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; color: #ffffff; }
-        .note-desc { font-size: 13.5px; color: rgba(255, 255, 255, 0.4); word-break: break-word; line-height: 1.45; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-        .note-meta { font-size: 10px; color: rgba(255,255,255,0.12); margin-top: 12px; display: flex; justify-content: space-between; align-items: center; }
-        .note-author { font-weight: 600; color: rgba(255, 255, 255, 0.35); text-transform: lowercase; }
+    button.btn-main {
+      width: 100%;
+      background: none;
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      padding: 12px;
+      font-family: monospace;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
 
-        .action-del { cursor: pointer; color: rgba(255,255,255,0.12); font-size: 11px; background: none; border: none; outline: none; padding: 4px; }
-        .action-del:hover { color: #ff453a; }
+    button.btn-main:hover {
+      background: rgba(220, 146, 100, 0.1);
+    }
 
-        /* ПРОСМОТР КАРТОЧКИ */
-        .viewer-modal {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #040405;
-            border-radius: 28px; padding: 24px; display: none; flex-direction: column; z-index: 500; animation: modalFade 0.25s ease;
-        }
-        @keyframes modalFade { from { opacity: 0; transform: scale(0.98); } to { opacity: 1; transform: scale(1); } }
-        .viewer-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
-        .viewer-close { background: none; border: none; color: #fff; font-size: 20px; cursor: pointer; opacity: 0.4; }
-        .viewer-close:hover { opacity: 1; }
-        .viewer-title { color: #fff; font-size: 22px; font-weight: 700; margin-bottom: 8px; letter-spacing: -0.5px; }
-        .viewer-author { font-size: 12px; color: rgba(255,255,255,0.3); margin-bottom: 20px; font-weight: 600; text-transform: lowercase; }
-        .viewer-body { color: rgba(255,255,255,0.65); font-size: 15px; line-height: 1.6; overflow-y: auto; flex: 1; word-break: break-word; }
-        .viewer-body::-webkit-scrollbar { width: 0px; }
-    </style>
+    .feed {
+      margin-top: 25px;
+      max-height: 350px;
+      overflow-y: auto;
+    }
+
+    .note-card {
+      background: #161616;
+      border: 1px solid var(--border-color);
+      padding: 15px;
+      margin-bottom: 15px;
+      border-radius: 2px;
+    }
+
+    .note-date {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 8px;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    /* Стилизация скроллбара */
+    .feed::-webkit-scrollbar { width: 4px; }
+    .feed::-webkit-scrollbar-thumb { background: var(--border-color); }
+  </style>
 </head>
 <body>
 
-    <!-- ЭКРАН ВХОДА С ЛОКАЛЬНЫМ ЛОГОТИПОМ -->
-    <div class="auth-screen" id="auth-screen">
-        <div class="auth-box">
-            <img src="logo.png" class="auth-logo-img" alt="logo">
-            <h2>Notes club</h2>
-            <p>Вход в пространство мыслей</p>
-            <input type="text" id="auth-username" class="glass-input" placeholder="Ваше имя...">
-            <input type="password" id="auth-password" class="glass-input" placeholder="Пароль...">
-            <button class="main-btn" onclick="handleLogin()">Создать себя</button>
-        </div>
+  <div class="app-container">
+    <div class="header">
+      <div class="logo-area">
+        <img src="logo.png" alt="logo" class="logo-img" onerror="this.style.display='none'">
+        <span>OBSIDIAN //v1.0</span>
+      </div>
+      <span id="ambient-status" style="font-size: 11px; color: var(--text-muted);">music: off</span>
     </div>
 
-    <!-- ОСНОВНОЙ МОДУЛЬ -->
-    <div class="glass-container">
-        <div class="viewer-modal" id="viewer-modal">
-            <div class="viewer-header">
-                <div class="viewer-author" id="v-author">автор: @user</div>
-                <button class="viewer-close" onclick="closeNoteViewer()">✕</button>
-            </div>
-            <div class="viewer-title" id="v-title">Название мысли</div>
-            <div class="viewer-body" id="v-body">Полный текст...</div>
-        </div>
-
-        <div class="top-bar">
-            <div class="logo">Notes club</div>
-            <div class="tabs">
-                <button class="tab-btn active" id="tab-write" onclick="switchScreen('write')">Писать</button>
-                <button class="tab-btn" id="tab-list" onclick="switchScreen('list')">Лента</button>
-            </div>
-        </div>
-
-        <div id="screen-write" class="screen active">
-            <input type="text" id="note-heading" class="glass-input" placeholder="Название мысли...">
-            <textarea id="note-text" class="glass-input textarea-input" placeholder="Начните писать здесь..."></textarea>
-            
-            <div class="privacy-selector">
-                <button class="privacy-btn active" id="p-btn-private" onclick="setPrivacy(false)">Личная</button>
-                <button class="privacy-btn" id="p-btn-public" onclick="setPrivacy(true)">Публичная</button>
-            </div>
-            
-            <button class="main-btn" onclick="publishNote()">Поделиться мыслью</button>
-        </div>
-
-        <div id="screen-list" class="screen">
-            <div class="sub-bar">
-                <button class="sub-tab-btn active" id="sub-tab-my" onclick="setFeedChannel('my')">Мои заметки</button>
-                <button class="sub-tab-btn" id="sub-tab-feed" onclick="setFeedChannel('feed')">Рекомендации</button>
-            </div>
-            
-            <div class="search-container">
-                <input type="text" id="search-input" class="glass-input search-input" placeholder="Поиск по названию..." oninput="liveSearch()">
-            </div>
-            
-            <div id="notes-container" class="notes-list"></div>
-        </div>
+    <div class="tabs">
+      <button id="tabMy" class="tab active" onclick="switchTab('my')">Мои заметки</button>
+      <button id="tabRec" class="tab" onclick="switchTab('rec')">Рекомендации</button>
     </div>
 
-    <!-- ТОТ САМЫЙ ОРИГИНАЛЬНЫЙ МАТЕМАТИЧЕСКИЙ СИНТЕЗАТОР ONEHEART -->
-    <script>
-        let currentUser = localStorage.getItem('nc_cloud_user') || "";
-        let isPublicNote = false;
-        let currentFeedChannel = "my";
+    <div id="inputSection">
+      <textarea id="noteText" placeholder="Напиши что-нибудь меланхоличное..."></textarea>
+      <button class="btn-main" onclick="addNote()">Создать себя</button>
+    </div>
+
+    <div id="myFeed" class="feed"></div>
+    <div id="recFeed" class="feed hidden">
+      <div class="note-card">
+        <div>Всё вокруг кажется симуляцией, пока ты не запишешь это здесь. Вкладка рекомендаций работает стабильно.</div>
+        <div class="note-date">системный пост // рекомендации</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // --- PWA РЕГИСТРАЦИЯ РОБОТА ---
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js')
+          .then(reg => console.log('PWA успешно активирован!'))
+          .catch(err => console.log('Ошибка PWA:', err));
+      });
+    }
+
+    // --- УПРАВЛЕНИЕ ЗАМЕТКАМИ И ИНТЕРФЕЙСОМ ---
+    let currentTab = 'my';
+
+    window.addEventListener('DOMContentLoaded', () => {
+      loadNotes();
+    });
+
+    function loadNotes() {
+      const feed = document.getElementById('myFeed');
+      feed.innerHTML = '';
+      let notes = JSON.parse(localStorage.getItem('obsidian_notes') || '[]');
+      
+      if(notes.length === 0) {
+        feed.innerHTML = '<div style="color: var(--text-muted); font-size: 13px; text-align: center; padding: 20px;">Тут пока пусто...</div>';
+        return;
+      }
+
+      notes.forEach(note => {
+        const card = document.createElement('div');
+        card.className = 'note-card';
+        card.innerHTML = `
+          <div>${escapeHTML(note.text)}</div>
+          <div class="note-date">${note.date}</div>
+        `;
+        feed.appendChild(card);
+      });
+    }
+
+    function addNote() {
+      initAudio(); // Запуск звука при первом действии пользователя
+      const textarea = document.getElementById('noteText');
+      const text = textarea.value.trim();
+      if (!text) return;
+
+      let notes = JSON.parse(localStorage.getItem('obsidian_notes') || '[]');
+      const newNote = {
+        text: text,
+        date: new Date().toLocaleString('ru-RU', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' })
+      };
+
+      notes.unshift(newNote);
+      localStorage.setItem('obsidian_notes', JSON.stringify(notes));
+      textarea.value = '';
+      loadNotes();
+    }
+
+    function switchTab(tab) {
+      initAudio(); // Запуск звука при переключении вкладок
+      currentTab = tab;
+      
+      document.getElementById('tabMy').classList.toggle('active', tab === 'my');
+      document.getElementById('tabRec').classList.toggle('active', tab === 'rec');
+      
+      document.getElementById('myFeed').classList.toggle('hidden', tab !== 'my');
+      document.getElementById('recFeed').classList.toggle('hidden', tab !== 'rec');
+      
+      document.getElementById('inputSection').classList.toggle('hidden', tab !== 'my');
+    }
+
+    function escapeHTML(str) {
+      return str.replace(/[&<>"']/g, tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[tag] || tag));
+    }
+
+    // --- МАТЕМАТИЧЕСКИЙ ЭМБИЕНТ (ONEHEART STYLE) ---
+    let audioCtx = null;
+
+    function initAudio() {
+      if (audioCtx) return; 
+      
+      try {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        document.getElementById('ambient-status').innerText = "music: on (oneheart ambient)";
+        document.getElementById('ambient-status').style.color = "var(--accent)";
         
-        let localMyNotes = JSON.parse(localStorage.getItem('nc_local_my_db')) || []; 
-        let cloudPublicNotes = JSON.parse(localStorage.getItem('nc_sim_feed_db')) || [
-            { id: 1, title: "Ночной Токио", body: "Дождь смывает неоновые вывески, под Oneheart пишется особенно легко. Рад видеть всех в Notes club.", author: "m00nlight", time: "01:24 · 20.05" },
-            { id: 2, title: "Одиночество цифрового мира", body: "Мы создаем уютные убежища в коде, чтобы спрятаться от шума реальности. Оставьте здесь свои мысли.", author: "obsidian_mind", time: "23:11 · 19.05" }
-        ]; 
+        // Создаем левый низкий гул (Основа)
+        createOscillator(110, 0.4, -0.5); 
+        // Создаем правый меланхоличный аккорд
+        createOscillator(165, 0.3, 0.5);  
+        
+      } catch(e) {
+        console.log("Аудио контекст не поддерживается браузере");
+      }
+    }
 
-        let audioCtx = null;
-        let isMusicRunning = false;
-        let trackId = 0;
-        let masterGain = null;
-        let masterFilter = null;
-        let delayNode = null;
+    function createOscillator(freq, volume, pan) {
+      const osc = audioCtx.createOscillator();
+      const gainNode = audioCtx.createGain();
+      const pando = audioCtx.createStereoPanner ? audioCtx.createStereoPanner() : null;
 
-        const scalePresets = [
-            { root: 55.00, chord: [1, 1.2, 1.5, 1.8], melody: [220, 261.63, 329.63, 392.00] },
-            { root: 48.99, chord: [1, 1.18, 1.4, 1.6], melody: [196.00, 246.94, 293.66, 369.99] }
-        ];
-        let activeScale = scalePresets;
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
 
-        function startGenerativeEngine() {
-            if (isMusicRunning) return;
-            try {
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                
-                masterGain = audioCtx.createGain();
-                masterGain.gain.setValueAtTime(0.35, audioCtx.currentTime);
-                
-                masterFilter = audioCtx.createBiquadFilter();
-                masterFilter.type = 'lowpass';
-                masterFilter.frequency.setValueAtTime(250, audioCtx.currentTime); 
-                
-                delayNode = audioCtx.createDelay(3.0);
-                delayNode.delayTime.setValueAtTime(0.8, audioCtx.currentTime);
-                
-                let delayFeedback = audioCtx.createGain();
-                delayFeedback.gain.setValueAtTime(0.58, audioCtx.currentTime);
+      // Медленная модуляция громкости (эффект "дыхания" звука)
+      gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
+      gainNode.gain.linearRampToValueAtTime(volume, audioCtx.currentTime + 4);
 
-                masterGain.connect(masterFilter);
-                masterFilter.connect(audioCtx.destination);
-                masterFilter.connect(delayNode);
-                delayNode.connect(delayFeedback);
-                delayFeedback.connect(masterFilter);
+      // Запускаем бесконечные волны изменения громкости
+      setInterval(() => {
+        let nextVol = Math.random() * volume + 0.1;
+        gainNode.gain.linearRampToValueAtTime(nextVol, audioCtx.currentTime + 5);
+      }, 5000);
 
-                function mutateAudioLayers() {
-                    const now = audioCtx.currentTime;
-                    activeScale.chord.forEach((multiplier) => {
-                        let osc = audioCtx.createOscillator();
-                        let gain = audioCtx.createGain();
-                        osc.type = 'triangle'; 
-                        let flutter = (Math.random() * 2 - 1) * 0.4;
-                        osc.frequency.setValueAtTime((activeScale.root * multiplier) + flutter, now);
-                        
-                        gain.gain.setValueAtTime(0, now);
-                        gain.gain.linearRampToValueAtTime(0.25, now + 3.5); 
-                        gain.gain.exponentialRampToValueAtTime(0.0001, now + 38.5);
-                        
-                        osc.connect(gain);
-                        gain.connect(masterGain);
-                        osc.start(now);
-                        osc.stop(now + 39.0);
-                    });
+      if (pando) {
+        pando.pan.setValueAtTime(pan, audioCtx.currentTime);
+        osc.connect(gainNode).connect(pando).connect(audioCtx.destination);
+      } else {
+        osc.connect(gainNode).connect(audioCtx.destination);
+      }
 
-                    for (let i = 0; i < 5; i++) {
-                        let timeOffset = i * (4 + Math.random() * 2.5);
-                        let randomFreq = activeScale.melody[Math.floor(Math.random() * activeScale.melody.length)];
-                        let sineOsc = audioCtx.createOscillator();
-                        let sineGain = audioCtx.createGain();
-                        
-                        sineOsc.type = 'sine';
-                        sineOsc.frequency.setValueAtTime(randomFreq, now + timeOffset);
-                        sineGain.gain.setValueAtTime(0, now + timeOffset);
-                        sineGain.gain.linearRampToValueAtTime(0.09, now + timeOffset + 0.8);
-                        sineGain.gain.exponentialRampToValueAtTime(0.0001, now + timeOffset + 3.5);
-                        
-                        sineOsc.connect(sineGain);
-                        sineGain.connect(masterGain);
-                        sineOsc.start(now + timeOffset);
-                        sineOsc.stop(now + timeOffset + 4.0);
-                    }
-                }
-
-                mutateAudioLayers();
-                setInterval(mutateAudioLayers, 40000); 
-                setInterval(() => {
-                    trackId = (trackId + 1) % scalePresets.length;
-                    activeScale = scalePresets[trackId];
-                    mutateAudioLayers();
-                }, 120000);    
-                isMusicRunning = true;
-                console.log("Генеративный звук успешно активирован процессором.");
-            } catch(e) { console.log("Сбой аудиопроцессора: ", e); }
-        }
-
-        // Любое касание экрана принудительно разблокирует аудио-узел
-        document.body.addEventListener('click', startGenerativeEngine);
-        document.body.addEventListener('touchstart', startGenerativeEngine);
-
-        if (currentUser) {
-            document.getElementById('auth-screen').style.display = 'none';
-        }
-
-        function handleLogin() {
-            const user = document.getElementById('auth-username').value.trim();
-            const pass = document.getElementById('auth-password').value.trim();
-            if (!user || !pass) return;
-            
-            currentUser = user;
-            localStorage.setItem('nc_cloud_user', user);
-            document.getElementById('auth-screen').style.opacity = '0';
-            setTimeout(() => { document.getElementById('auth-screen').style.display = 'none'; }, 500);
-            
-            startGenerativeEngine();
-            renderNotesList();
-        }
-
-        function switchScreen(type) {
-            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-            document.querySelectorAll('.tab-btn').forEach(t => t.classList.remove('active'));
-            
-            if (type === 'write') {
-                document.getElementById('screen-write').classList.add('active');
-                document.getElementById('tab-write').classList.add('active');
-            } else {
-                document.getElementById('screen-list').classList.add('active');
-                document.getElementById('tab-list').classList.add('active');
-                renderNotesList(); 
-            }
-        }
-
-        function setPrivacy(isPublic) {
-            isPublicNote = isPublic;
-            document.getElementById('p-btn-private').classList.toggle('active', !isPublic);
-            document.getElementById('p-btn-public').classList.toggle('active', isPublic);
-        }
-
-        function setFeedChannel(channel) {
-            currentFeedChannel = channel;
-            document.getElementById('sub-tab-my').classList.toggle('active', channel === 'my');
-            document.getElementById('sub-tab-feed').classList.toggle('active', channel === 'feed');
-            renderNotesList();
-        }
-
-        function publishNote() {
-            const bField = document.getElementById('note-text');
-            if (bField.value.trim() === "") return;
-            
-            let heading = document.getElementById('note-heading').value.trim();
-            if (!heading) heading = `Мысль #${localMyNotes.length + 1}`;
-            
-            const timeStamp = new Date().toLocaleTimeString('ru-RU', {hour: '2-digit', minute:'2-digit'}) + ' · ' + new Date().toLocaleDateString('ru-RU', {day: '2-digit', month: '2-digit'});
-
-            const newNote = {
-                id: Date.now(),
-                title: heading,
-                body: bField.value.trim(),
-                author: currentUser || "аноним",
-                privacy: isPublicNote ? "public" : "private",
-                time: timeStamp
-            };
-
-            localMyNotes.unshift(newNote);
-            localStorage.setItem('nc_local_my_db', JSON.stringify(localMyNotes));
-
-            if (isPublicNote) {
-                cloudPublicNotes.unshift(newNote);
-                localStorage.setItem('nc_sim_feed_db', JSON.stringify(cloudPublicNotes));
-                setFeedChannel('feed');
-            } else {
-                setFeedChannel('my');
-            }
-            
-            document.getElementById('note-heading').value = "";
-            bField.value = "";
-            switchScreen('list');
-        }
-
-        function renderNotesList(filterQuery = "") {
-            const container = document.getElementById('notes-container');
-            container.innerHTML = "";
-
-            const activeList = (currentFeedChannel === 'my') ? localMyNotes : cloudPublicNotes;
-
-            activeList.forEach((note) => {
-                if (filterQuery && !note.title.toLowerCase().includes(filterQuery.toLowerCase())) return;
-
-                const card = document.createElement('div');
-                card.classList.add('note-item');
-                card.onclick = (e) => {
-                    if (e.target.tagName === 'BUTTON') return;
-                    openNoteViewer(note);
-                };
-                
-                const deleteBtn = `<button class="action-del" onclick="deleteNote(${note.id}, event)">✕</button>`;
-
-                card.innerHTML = `
-                    <div class="note-title">
-                        <span>${note.title}</span>
-                        ${deleteBtn}
-                    </div>
-                    <div class="note-desc">${note.body}</div>
-                    <div class="note-meta">
-                        <span class="note-author">@${note.author} ${note.privacy === 'private' ? '🔒' : '🌍'}</span>
-                        <span>${note.time}</span>
-                    </div>
-                `;
-                container.appendChild(card);
-            });
-        }
-
-        function liveSearch() {
-            renderNotesList(document.getElementById('search-input').value);
-        }
-
-        function deleteNote(id, event) {
-            event.stopPropagation();
-            localMyNotes = localMyNotes.filter(note => note.id !== id);
-            localStorage.setItem('nc_local_my_db', JSON.stringify(localMyNotes));
-            
-            cloudPublicNotes = cloudPublicNotes.filter(note => note.id !== id);
-            localStorage.setItem('nc_sim_feed_db', JSON.stringify(cloudPublicNotes));
-            
-            renderNotesList();
-        }
-
-        function openNoteViewer(note) {
-            document.getElementById('v-author').innerText = `автор: @${note.author}`;
-            document.getElementById('v-title').innerText = note.title;
-            document.getElementById('v-body').innerText = note.body;
-            document.getElementById('viewer-modal').style.display = 'flex';
-        }
-
-        function closeNoteViewer() {
-            document.getElementById('viewer-modal').style.display = 'none';
-        }
-
-        renderNotesList();
-    </script>
-
+      osc.start();
+    }
+  </script>
 </body>
 </html>
