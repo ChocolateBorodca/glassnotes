@@ -6,7 +6,6 @@ let mediaRecorder = null;
 let audioChunks = [];
 let recordedAudioBase64 = null;
 
-// Настройка холста полноэкранных волн от кнопок
 const canvas = document.getElementById('wave-canvas');
 const ctx = canvas.getContext('2d');
 let waves = [];
@@ -25,14 +24,14 @@ class ClickWave {
     this.y = y;
     this.radius = 0;
     this.maxRadius = Math.max(canvas.width, canvas.height) * 1.2;
-    this.speed = 15;
+    this.speed = 10;
     this.opacity = 0.4;
-    this.lineWidth = 4;
+    this.lineWidth = 2;
   }
   update() {
     this.radius += this.speed;
-    this.opacity -= 0.006;
-    this.lineWidth += 0.1;
+    this.opacity -= 0.005;
+    this.lineWidth += 0.05;
   }
   draw() {
     ctx.beginPath();
@@ -43,11 +42,11 @@ class ClickWave {
   }
 }
 
-// Запуск анимации волны из точки клика по любой кнопке
+// Отлавливаем нажатия и запускаем красивую волну от пальца
 document.addEventListener('click', (e) => {
-  if (e.target.closest('button') || e.target.closest('.mic-glass-button') || e.target.closest('.privacy-btn')) {
+  if (e.target.closest('.liquid-glass-btn') || e.target.closest('.mic-glass-button') || e.target.closest('.privacy-btn')) {
     waves.push(new ClickWave(e.clientX, e.clientY));
-    initAmbientAudio(); // Запуск Oneheart фонового эмбиента
+    initAmbientAudio(); 
   }
 });
 
@@ -83,11 +82,9 @@ function setScope(scope) {
   document.getElementById('scopePublic').classList.toggle('active', scope === 'public');
 }
 
-// --- ЗАПИСЬ ГОЛОСА (LIQUID GLASS MICROPHONE) ---
+// --- ЗАПИСЬ ГОЛОСА ---
 function setupVoiceRecorder() {
   const micBtn = document.getElementById('micBtn');
-  
-  // Поддержка нажатия для телефонов и ПК
   const startEvents = ['mousedown', 'touchstart'];
   const endEvents = ['mouseup', 'mouseleave', 'touchend'];
 
@@ -118,7 +115,7 @@ function setupVoiceRecorder() {
         mediaRecorder.start();
         micBtn.classList.add('recording');
       } catch (err) {
-        console.error("Доступ к микрофону заблокирован:", err);
+        console.error(err);
       }
     });
   });
@@ -134,7 +131,7 @@ function setupVoiceRecorder() {
   });
 }
 
-// --- ОТПРАВКА И СОХРАНЕНИЕ ПОСТОВ ---
+// --- ОТПРАВКА И СОХРАНЕНИЕ ---
 function sendPost() {
   const textarea = document.getElementById('noteText');
   const text = textarea.value.trim();
@@ -153,7 +150,6 @@ function sendPost() {
   notes.unshift(newNote);
   localStorage.setItem('obsidian_notes', JSON.stringify(notes));
 
-  // Очистка полей ввода
   textarea.value = '';
   recordedAudioBase64 = null;
   textarea.placeholder = "Зафиксируй состояние или зажми микрофон...";
@@ -203,16 +199,16 @@ function loadLocalNotes() {
   });
 }
 
-// --- УПРАВЛЕНИЕ КАСТОМНЫМ ПЛЕЕРОМ ---
+// --- УПРАВЛЕНИЕ ПЛЕЕРОМ ---
 function toggleAudio(id) {
   const audio = document.getElementById(id);
   const btn = audio.previousElementSibling.previousElementSibling;
   
-  // Останавливаем другие играющие плееры, если они есть
   document.querySelectorAll('audio').forEach(aud => {
     if(aud.id !== id) {
       aud.pause();
-      aud.previousElementSibling.previousElementSibling.classList.remove('playing');
+      const currentBtn = aud.previousElementSibling?.previousElementSibling;
+      if (currentBtn) currentBtn.classList.remove('playing');
     }
   });
 
@@ -230,7 +226,7 @@ function updateAudioProgress(id) {
   const progress = document.getElementById(`progress-${id}`);
   const timeLabel = document.getElementById(`time-${id}`);
   
-  if (audio.duration) {
+  if (audio && audio.duration) {
     const pct = (audio.currentTime / audio.duration) * 100;
     progress.style.width = `${pct}%`;
     
@@ -252,7 +248,7 @@ function seekAudio(e, id) {
   const audio = document.getElementById(id);
   const timeline = e.currentTarget;
   const pct = e.offsetX / timeline.offsetWidth;
-  if(audio.duration) {
+  if(audio && audio.duration) {
     audio.currentTime = pct * audio.duration;
   }
 }
@@ -261,7 +257,7 @@ function escapeHTML(str) {
   return str.replace(/[&<>"']/g, tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[tag] || tag));
 }
 
-// --- МАТЕМАТИЧЕСКИЙ ЭМБИЕНТ (ONEHEART AMBIENT) ---
+// --- МАТЕМАТИЧЕСКИЙ ЭМБИЕНТ ---
 function initAmbientAudio() {
   if (audioCtx) return;
   try {
@@ -269,8 +265,8 @@ function initAmbientAudio() {
     document.getElementById('music-status').innerText = "ambient: on";
     document.getElementById('music-status').style.color = "#ffffff";
 
-    createSynthWave(110, 0.2, -0.5); // Левая сторона
-    createSynthWave(165, 0.15, 0.5); // Правая сторона
+    createSynthWave(110, 0.2, -0.5); 
+    createSynthWave(165, 0.15, 0.5); 
   } catch (e) {}
 }
 
@@ -284,7 +280,6 @@ function createSynthWave(freq, maxVolume, pan) {
   gain.gain.setValueAtTime(0, audioCtx.currentTime);
   gain.gain.linearRampToValueAtTime(maxVolume, audioCtx.currentTime + 4);
 
-  // Симуляция медленного затухания и накала звука
   setInterval(() => {
     let nextVol = Math.random() * maxVolume + 0.05;
     gain.gain.linearRampToValueAtTime(nextVol, audioCtx.currentTime + 4);
@@ -299,7 +294,6 @@ function createSynthWave(freq, maxVolume, pan) {
   osc.start();
 }
 
-// Регистрация PWA робота
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('sw.js').catch(() => {});
