@@ -1,10 +1,10 @@
 // --- ИНИЦИАЛИЗАЦИЯ И СОСТОЯНИЕ ---
 let currentTab = 'my';
-let currentScope = 'private';
+window.currentScope = 'private'; // Делаем scope глобальным
 let audioCtx = null;
 let mediaRecorder = null;
 let audioChunks = [];
-let recordedAudioBase64 = null;
+window.recordedAudioBase64 = null; // Делаем аудио глобальным, чтобы media.js его видел
 
 const canvas = document.getElementById('wave-canvas');
 const ctx = canvas.getContext('2d');
@@ -42,7 +42,6 @@ class ClickWave {
   }
 }
 
-// Отлавливаем нажатия и запускаем красивую волну от пальца
 document.addEventListener('click', (e) => {
   if (e.target.closest('.liquid-glass-btn') || e.target.closest('.mic-glass-button') || e.target.closest('.privacy-btn')) {
     waves.push(new ClickWave(e.clientX, e.clientY));
@@ -63,7 +62,9 @@ animate();
 
 // --- ХОД РАБОТЫ ИНТЕРФЕЙСА ---
 window.addEventListener('DOMContentLoaded', () => {
-  loadLocalNotes();
+  if (typeof window.loadLocalNotes !== 'function') {
+    loadLocalNotes();
+  }
   setupVoiceRecorder();
 });
 
@@ -77,7 +78,7 @@ function switchTab(tab) {
 }
 
 function setScope(scope) {
-  currentScope = scope;
+  window.currentScope = scope;
   document.getElementById('scopePrivate').classList.toggle('active', scope === 'private');
   document.getElementById('scopePublic').classList.toggle('active', scope === 'public');
 }
@@ -85,6 +86,8 @@ function setScope(scope) {
 // --- ЗАПИСЬ ГОЛОСА ---
 function setupVoiceRecorder() {
   const micBtn = document.getElementById('micBtn');
+  if (!micBtn) return;
+  
   const startEvents = ['mousedown', 'touchstart'];
   const endEvents = ['mouseup', 'mouseleave', 'touchend'];
 
@@ -107,7 +110,7 @@ function setupVoiceRecorder() {
           const reader = new FileReader();
           reader.readAsDataURL(audioBlob);
           reader.onloadend = () => {
-            recordedAudioBase64 = reader.result;
+            window.recordedAudioBase64 = reader.result;
             document.getElementById('noteText').placeholder = "🎤 Голосовая заметка готова к отправке...";
           };
         };
@@ -131,77 +134,25 @@ function setupVoiceRecorder() {
   });
 }
 
-// --- ОТПРАВКА И СОХРАНЕНИЕ ---
+// --- СТАНДАРТНЫЕ ФУНКЦИИ (БУДУТ ПЕРЕЗАПИСАНЫ БОЛЕЕ НОВЫМИ СКРИПТАМИ) ---
 function sendPost() {
-  const textarea = document.getElementById('noteText');
-  const text = textarea.value.trim();
-  
-  if (!text && !recordedAudioBase64) return;
-
-  let notes = JSON.parse(localStorage.getItem('obsidian_notes') || '[]');
-  const newNote = {
-    id: Date.now(),
-    text: text,
-    audio: recordedAudioBase64,
-    scope: currentScope,
-    date: new Date().toLocaleString('ru-RU', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' })
-  };
-
-  notes.unshift(newNote);
-  localStorage.setItem('obsidian_notes', JSON.stringify(notes));
-
-  textarea.value = '';
-  recordedAudioBase64 = null;
-  textarea.placeholder = "Зафиксируй состояние или зажми микрофон...";
-  
-  loadLocalNotes();
+  if (typeof window.sendPost === 'function' && window.sendPost !== sendPost) {
+    window.sendPost();
+    return;
+  }
 }
 
 function loadLocalNotes() {
-  const feed = document.getElementById('myFeed');
-  feed.innerHTML = '';
-  let notes = JSON.parse(localStorage.getItem('obsidian_notes') || '[]');
-
-  if (notes.length === 0) {
-    feed.innerHTML = '<div style="color: var(--text-muted); text-align: center; padding: 30px 0; font-size: 14px;">Поток пуст...</div>';
+  if (typeof window.loadLocalNotes === 'function' && window.loadLocalNotes !== loadLocalNotes) {
+    window.loadLocalNotes();
     return;
   }
-
-  notes.forEach(note => {
-    const card = document.createElement('div');
-    card.className = 'glass-card';
-    
-    let audioHtml = '';
-    if (note.audio) {
-      audioHtml = `
-        <div class="liquid-audio-player">
-          <button class="play-pause-btn" onclick="toggleAudio('audio-${note.id}')">
-            <div class="play-icon"></div>
-          </button>
-          <div class="player-timeline" onclick="seekAudio(event, 'audio-${note.id}')">
-            <div id="progress-audio-${note.id}" class="player-progress"></div>
-          </div>
-          <span id="time-audio-${note.id}" class="player-duration">0:00</span>
-          <audio id="audio-${note.id}" src="${note.audio}" ontimeupdate="updateAudioProgress('audio-${note.id}')" onended="audioEnded('audio-${note.id}')"></audio>
-        </div>
-      `;
-    }
-
-    card.innerHTML = `
-      ${note.text ? `<div class="card-text">${escapeHTML(note.text)}</div>` : ''}
-      ${audioHtml}
-      <div class="card-meta">
-        <span>${note.date}</span>
-        <span>${note.scope === 'public' ? 'публичное' : 'личное'}</span>
-      </div>
-    `;
-    feed.appendChild(card);
-  });
 }
 
 // --- УПРАВЛЕНИЕ ПЛЕЕРОМ ---
 function toggleAudio(id) {
   const audio = document.getElementById(id);
+  if (!audio) return;
   const btn = audio.previousElementSibling.previousElementSibling;
   
   document.querySelectorAll('audio').forEach(aud => {
@@ -214,10 +165,10 @@ function toggleAudio(id) {
 
   if (audio.paused) {
     audio.play();
-    btn.classList.add('playing');
+    if (btn) btn.classList.add('playing');
   } else {
     audio.pause();
-    btn.classList.remove('playing');
+    if (btn) btn.classList.remove('playing');
   }
 }
 
@@ -228,20 +179,21 @@ function updateAudioProgress(id) {
   
   if (audio && audio.duration) {
     const pct = (audio.currentTime / audio.duration) * 100;
-    progress.style.width = `${pct}%`;
+    if (progress) progress.style.width = `${pct}%`;
     
     const mins = Math.floor(audio.currentTime / 60);
     const secs = Math.floor(audio.currentTime % 60).toString().padStart(2, '0');
-    timeLabel.innerText = `${mins}:${secs}`;
+    if (timeLabel) timeLabel.innerText = `${mins}:${secs}`;
   }
 }
 
 function audioEnded(id) {
   const audio = document.getElementById(id);
+  if (!audio) return;
   const btn = audio.previousElementSibling.previousElementSibling;
-  btn.classList.remove('playing');
-  document.getElementById(`progress-${id}`).style.width = '0%';
-  document.getElementById(`time-${id}`).innerText = '0:00';
+  if (btn) btn.classList.remove('playing');
+  if (document.getElementById(`progress-${id}`)) document.getElementById(`progress-${id}`).style.width = '0%';
+  if (document.getElementById(`time-${id}`)) document.getElementById(`time-${id}`).innerText = '0:00';
 }
 
 function seekAudio(e, id) {
@@ -257,14 +209,15 @@ function escapeHTML(str) {
   return str.replace(/[&<>"']/g, tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[tag] || tag));
 }
 
-// --- МАТЕМАТИЧЕСКИЙ ЭМБИЕНТ ---
 function initAmbientAudio() {
   if (audioCtx) return;
   try {
     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    document.getElementById('music-status').innerText = "ambient: on";
-    document.getElementById('music-status').style.color = "#ffffff";
-
+    const status = document.getElementById('music-status');
+    if (status) {
+      status.innerText = "ambient: on";
+      status.style.color = "#ffffff";
+    }
     createSynthWave(110, 0.2, -0.5); 
     createSynthWave(165, 0.15, 0.5); 
   } catch (e) {}
@@ -281,6 +234,7 @@ function createSynthWave(freq, maxVolume, pan) {
   gain.gain.linearRampToValueAtTime(maxVolume, audioCtx.currentTime + 4);
 
   setInterval(() => {
+    if (!audioCtx) return;
     let nextVol = Math.random() * maxVolume + 0.05;
     gain.gain.linearRampToValueAtTime(nextVol, audioCtx.currentTime + 4);
   }, 4000);
