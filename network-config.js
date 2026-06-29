@@ -22,3 +22,6 @@ window.auth = getAuth(app);
 window.db = getDatabase(app);
 
 console.log("🪐 Notes Club успешно подключен к облачной сети Firebase!");
+
+// МАГИЧЕСКАЯ СТРОКА: Сами загружаем живую ленту в обход index.html
+import("./sync-stream.js").catch(err => console.error("Ошибка загрузки потока:", err));
