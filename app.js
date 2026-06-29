@@ -1,10 +1,10 @@
 // --- ИНИЦИАЛИЗАЦИЯ И СОСТОЯНИЕ ---
 let currentTab = 'my';
-window.currentScope = 'private'; // Делаем scope глобальным
+window.currentScope = 'private'; 
 let audioCtx = null;
 let mediaRecorder = null;
 let audioChunks = [];
-window.recordedAudioBase64 = null; // Делаем аудио глобальным, чтобы media.js его видел
+window.recordedAudioBase64 = null; // Вынесли в глобальное окно window для media.js
 
 const canvas = document.getElementById('wave-canvas');
 const ctx = canvas.getContext('2d');
@@ -17,7 +17,7 @@ function resizeCanvas() {
 window.addEventListener('resize', resizeCanvas);
 resizeCanvas();
 
-// --- АНИМАЦИЯ ЗВУКОВОЙ ВОЛНЫ ОТ КЛИКА (RIPPLE WAVE) ---
+// --- АНИМАЦИЯ ЗВУКОВОЙ ВОЛНЫ ОТ КЛИКА ---
 class ClickWave {
   constructor(x, y) {
     this.x = x;
@@ -62,9 +62,6 @@ animate();
 
 // --- ХОД РАБОТЫ ИНТЕРФЕЙСА ---
 window.addEventListener('DOMContentLoaded', () => {
-  if (typeof window.loadLocalNotes !== 'function') {
-    loadLocalNotes();
-  }
   setupVoiceRecorder();
 });
 
@@ -110,7 +107,7 @@ function setupVoiceRecorder() {
           const reader = new FileReader();
           reader.readAsDataURL(audioBlob);
           reader.onloadend = () => {
-            window.recordedAudioBase64 = reader.result;
+            window.recordedAudioBase64 = reader.result; // Сохраняем в глобальное свойство
             document.getElementById('noteText').placeholder = "🎤 Голосовая заметка готова к отправке...";
           };
         };
@@ -134,18 +131,16 @@ function setupVoiceRecorder() {
   });
 }
 
-// --- СТАНДАРТНЫЕ ФУНКЦИИ (БУДУТ ПЕРЕЗАПИСАНЫ БОЛЕЕ НОВЫМИ СКРИПТАМИ) ---
+// Заглушки, которые будут переопределены в media.js
 function sendPost() {
   if (typeof window.sendPost === 'function' && window.sendPost !== sendPost) {
     window.sendPost();
-    return;
   }
 }
 
 function loadLocalNotes() {
   if (typeof window.loadLocalNotes === 'function' && window.loadLocalNotes !== loadLocalNotes) {
     window.loadLocalNotes();
-    return;
   }
 }
 
