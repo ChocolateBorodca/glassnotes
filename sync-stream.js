@@ -8,7 +8,7 @@ window.addEventListener('DOMContentLoaded', () => {
   // Перезаписываем глобальные функции управления заметками
   window.sendPost = sendPostToNodeServer;
   window.loadLocalNotes = loadOnlyLocalNotes;
-  window.deleteNote = deleteNoteFromLocal; // Фиксируем безопасное удаление
+  window.deleteNote = deleteNoteFromLocal;
 
   // Намертво привязываем клик кнопки «Отправить» к нашему новому серверу
   setTimeout(() => {
@@ -126,7 +126,7 @@ function listenToNodeRecommendations() {
 
 // --- 3. ФУНКЦИЯ ЛОКАЛЬНОГО УДАЛЕНИЯ ЗАМЕТКИ ---
 function deleteNoteFromLocal(event, id) {
-  if (event) event.stopPropagation(); // Предотвращаем открытие оверлея
+  if (event) event.stopPropagation();
   
   let notes = JSON.parse(localStorage.getItem('obsidian_notes') || '[]');
   notes = notes.filter(note => note.id !== id);
@@ -282,5 +282,7 @@ function injectUploadButton() {
 }
 
 function escapeHTML(str) {
-  return str.replace(/[&<>"']/g, tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[tag] || tag));
+  return str.replace(/[&<>"']/g, function(m) {
+    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m];
+  });
 }
