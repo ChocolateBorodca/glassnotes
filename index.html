@@ -2,82 +2,81 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Obsidian Note App</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Obsidian</title>
   
   <!-- PWA настройки и иконка -->
   <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#0e0e10">
+  <meta name="theme-color" content="#000000">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="apple-touch-icon" href="logo.png">
 
   <style>
     :root {
-      --bg-color: #0e0e10;
-      --container-bg: #16161a;
-      --border-color: #2c2c35;
-      --text-main: #abb2bf;
-      --text-muted: #5c6370;
-      --accent: #61afef; /* Информационный акцент Obsidian */
-      --btn-border: #4b5263;
+      --bg-color: #000000;
+      --text-main: #e2e2e2;
+      --text-muted: #444444;
+      --accent: #61afef;
     }
 
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
+      -webkit-tap-highlight-color: transparent;
     }
 
     body {
       background-color: var(--bg-color);
       color: var(--text-main);
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      min-height: 100vh;
       display: flex;
       justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      padding: 20px;
+      padding: 25px 20px;
     }
 
-    .app-container {
+    .app-wrapper {
       width: 100%;
-      max-width: 540px;
-      background: var(--container-bg);
-      border: 1px solid var(--border-color);
-      padding: 30px;
-      border-radius: 8px;
-      box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+      max-width: 600px;
+      display: flex;
+      flex-direction: column;
     }
 
     .header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 25px;
-      border-bottom: 1px solid var(--border-color);
-      padding-bottom: 15px;
+      padding-bottom: 20px;
+      font-size: 12px;
+      letter-spacing: 1px;
+      font-weight: 500;
     }
 
     .logo-area {
       display: flex;
       align-items: center;
-      gap: 10px;
-      font-weight: 600;
-      font-size: 14px;
-      letter-spacing: 0.5px;
+      gap: 8px;
+      color: var(--text-main);
     }
 
     .logo-img {
-      width: 18px;
-      height: 18px;
+      width: 14px;
+      height: 14px;
       object-fit: cover;
+      opacity: 0.7;
+    }
+
+    #ambient-status {
+      color: var(--text-muted);
+      transition: color 0.3s;
     }
 
     .tabs {
       display: flex;
-      gap: 20px;
-      margin-bottom: 20px;
-      border-bottom: 1px solid rgba(44, 44, 53, 0.5);
-      padding-bottom: 8px;
+      gap: 25px;
+      margin-bottom: 30px;
     }
 
     .tab {
@@ -86,146 +85,121 @@
       color: var(--text-muted);
       font-family: inherit;
       cursor: pointer;
-      font-size: 14px;
+      font-size: 15px;
       font-weight: 500;
-      padding-bottom: 8px;
-      position: relative;
+      padding: 5px 0;
       transition: color 0.2s;
-    }
-
-    .tab:hover {
-      color: var(--text-main);
     }
 
     .tab.active {
       color: var(--text-main);
     }
 
-    .tab.active::after {
-      content: '';
-      position: absolute;
-      bottom: -9px;
-      left: 0;
-      width: 100%;
-      height: 2px;
-      background-color: var(--accent);
-    }
-
     textarea {
       width: 100%;
-      height: 120px;
-      background: #1e1e24;
-      border: 1px solid var(--border-color);
-      border-radius: 6px;
+      height: 140px;
+      background: transparent;
+      border: none;
       color: #ffffff;
-      padding: 14px;
       font-family: inherit;
-      font-size: 14px;
-      line-height: 1.5;
+      font-size: 16px;
+      line-height: 1.6;
       resize: none;
       outline: none;
-      margin-bottom: 15px;
-      transition: border-color 0.2s;
+      margin-bottom: 10px;
     }
 
-    textarea:focus {
-      border-color: var(--btn-border);
+    textarea::placeholder {
+      color: var(--text-muted);
     }
 
     button.btn-main {
-      width: 100%;
-      background: #24242c;
-      border: 1px solid var(--btn-border);
-      color: var(--text-main);
-      padding: 12px;
+      background: none;
+      border: none;
+      color: var(--text-muted);
       font-family: inherit;
       font-size: 14px;
-      font-weight: 500;
-      border-radius: 6px;
       cursor: pointer;
-      transition: all 0.2s;
+      align-self: flex-start;
+      padding: 5px 0;
+      transition: color 0.2s;
+      margin-bottom: 40px;
     }
 
     button.btn-main:hover {
-      background: #2c2c35;
-      border-color: #5c6370;
+      color: var(--text-main);
     }
 
     .feed {
-      margin-top: 25px;
-      max-height: 320px;
-      overflow-y: auto;
-      padding-right: 5px;
+      display: flex;
+      flex-direction: column;
+      gap: 30px;
     }
 
     .note-card {
-      background: #1e1e24;
-      border: 1px solid var(--border-color);
-      padding: 16px;
-      margin-bottom: 12px;
-      border-radius: 6px;
-      font-size: 14px;
-      line-height: 1.5;
+      background: transparent;
+      border: none;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .note-text {
+      font-size: 16px;
+      line-height: 1.6;
+      word-break: break-word;
     }
 
     .note-date {
       font-size: 11px;
       color: var(--text-muted);
-      margin-top: 10px;
-      display: block;
+      letter-spacing: 0.5px;
     }
 
     .hidden {
       display: none !important;
     }
-
-    /* Кастомный минималистичный скроллбар */
-    .feed::-webkit-scrollbar { width: 5px; }
-    .feed::-webkit-scrollbar-track { background: transparent; }
-    .feed::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 10px; }
   </style>
 </head>
 <body>
 
-  <div class="app-container">
+  <div class="app-wrapper">
     <div class="header">
       <div class="logo-area">
-        <img src="logo.png" alt="logo" class="logo-img" onerror="this.style.display='none'">
-        <span>OBSIDIAN //v1.0</span>
+        <img src="logo.png" alt="" class="logo-img" onerror="this.style.display='none'">
+        <span>OBSIDIAN // v1.0</span>
       </div>
-      <span id="ambient-status" style="font-size: 11px; color: var(--text-muted);">music: off</span>
+      <span id="ambient-status">ambient: off</span>
     </div>
 
     <div class="tabs">
-      <button id="tabMy" class="tab active" onclick="switchTab('my')">Мои заметки</button>
+      <button id="tabMy" class="tab active" onclick="switchTab('my')">Заметки</button>
       <button id="tabRec" class="tab" onclick="switchTab('rec')">Рекомендации</button>
     </div>
 
-    <div id="inputSection">
-      <textarea id="noteText" placeholder="Напиши что-нибудь меланхоличное..."></textarea>
-      <button class="btn-main" onclick="addNote()">Создать себя</button>
+    <div id="inputSection" style="display: flex; flex-direction: column;">
+      <textarea id="noteText" placeholder="Напиши что-нибудь..."></textarea>
+      <button class="btn-main" onclick="addNote()">// создать себя</button>
     </div>
 
     <div id="myFeed" class="feed"></div>
     <div id="recFeed" class="feed hidden">
       <div class="note-card">
-        <div>Всё вокруг кажется симуляцией, пока ты не запишешь это здесь. Вкладка рекомендаций работает стабильно.</div>
-        <div class="note-date">системный пост // рекомендации</div>
+        <div class="note-text">Всё вокруг кажется симуляцией, пока ты не зафиксируешь это здесь.</div>
+        <div class="note-date">системный поток // рекомендации</div>
       </div>
     </div>
   </div>
 
   <script>
-    // --- PWA РЕГИСТРАЦИЯ РОБОТА ---
+    // --- PWA РЕГИСТРАЦИЯ ---
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw.js')
-          .then(reg => console.log('PWA успешно активирован!'))
-          .catch(err => console.log('Ошибка PWA:', err));
+        navigator.serviceWorker.register('sw.js').catch(err => console.log(err));
       });
     }
 
-    // --- УПРАВЛЕНИЕ ЗАМЕТКАМИ И ИНТЕРФЕЙСОМ ---
+    // --- ЛОГИКА ПРИЛОЖЕНИЯ ---
     let currentTab = 'my';
 
     window.addEventListener('DOMContentLoaded', () => {
@@ -238,7 +212,7 @@
       let notes = JSON.parse(localStorage.getItem('obsidian_notes') || '[]');
       
       if(notes.length === 0) {
-        feed.innerHTML = '<div style="color: var(--text-muted); font-size: 13px; text-align: center; padding: 20px;">Тут пока пусто...</div>';
+        feed.innerHTML = '<div style="color: var(--text-muted); font-size: 14px; padding: 10px 0;">Поток пуст...</div>';
         return;
       }
 
@@ -246,7 +220,7 @@
         const card = document.createElement('div');
         card.className = 'note-card';
         card.innerHTML = `
-          <div>${escapeHTML(note.text)}</div>
+          <div class="note-text">${escapeHTML(note.text)}</div>
           <div class="note-date">${note.date}</div>
         `;
         feed.appendChild(card);
@@ -254,7 +228,7 @@
     }
 
     function addNote() {
-      initAudio(); // Запуск звука при первом действии пользователя
+      initAudio();
       const textarea = document.getElementById('noteText');
       const text = textarea.value.trim();
       if (!text) return;
@@ -262,7 +236,7 @@
       let notes = JSON.parse(localStorage.getItem('obsidian_notes') || '[]');
       const newNote = {
         text: text,
-        date: new Date().toLocaleString('ru-RU', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' })
+        date: new Date().toLocaleString('ru-RU', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' }).replace(',', '')
       };
 
       notes.unshift(newNote);
@@ -272,7 +246,7 @@
     }
 
     function switchTab(tab) {
-      initAudio(); // Запуск звука при переключении вкладок
+      initAudio();
       currentTab = tab;
       
       document.getElementById('tabMy').classList.toggle('active', tab === 'my');
@@ -288,25 +262,19 @@
       return str.replace(/[&<>"']/g, tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[tag] || tag));
     }
 
-    // --- МАТЕМАТИЧЕСКИЙ ЭМБИЕНТ (ONEHEART STYLE) ---
+    // --- МАТЕМАТИЧЕСКИЙ ЭМБИЕНТ ---
     let audioCtx = null;
 
     function initAudio() {
       if (audioCtx) return; 
-      
       try {
         audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        document.getElementById('ambient-status').innerText = "music: on (oneheart ambient)";
-        document.getElementById('ambient-status').style.color = "var(--text-main)";
+        document.getElementById('ambient-status').innerText = "ambient: on";
+        document.getElementById('ambient-status').style.color = "#ffffff";
         
-        // Создаем левый низкий гул (Основа)
-        createOscillator(110, 0.4, -0.5); 
-        // Создаем правый меланхоличный аккорд
-        createOscillator(165, 0.3, 0.5);  
-        
-      } catch(e) {
-        console.log("Аудио контекст не поддерживается в этом браузере");
-      }
+        createOscillator(110, 0.25, -0.6); 
+        createOscillator(165, 0.20, 0.6);  
+      } catch(e) {}
     }
 
     function createOscillator(freq, volume, pan) {
@@ -316,16 +284,13 @@
 
       osc.type = 'sine';
       osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-
-      // Медленная модуляция громкости (эффект "дыхания" звука)
       gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
-      gainNode.gain.linearRampToValueAtTime(volume, audioCtx.currentTime + 4);
+      gainNode.gain.linearRampToValueAtTime(volume, audioCtx.currentTime + 3);
 
-      // Запускаем бесконечные волны изменения громкости
       setInterval(() => {
-        let nextVol = Math.random() * volume + 0.1;
-        gainNode.gain.linearRampToValueAtTime(nextVol, audioCtx.currentTime + 5);
-      }, 5000);
+        let nextVol = Math.random() * volume + 0.05;
+        gainNode.gain.linearRampToValueAtTime(nextVol, audioCtx.currentTime + 4);
+      }, 4000);
 
       if (pando) {
         pando.pan.setValueAtTime(pan, audioCtx.currentTime);
@@ -333,7 +298,6 @@
       } else {
         osc.connect(gainNode).connect(audioCtx.destination);
       }
-
       osc.start();
     }
   </script>
