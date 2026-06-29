@@ -1,9 +1,9 @@
-// Импортируем официальные модули Firebase прямо из сети
+// --- АВТОНОМНОЕ ПОДКЛЮЧЕНИЕ ОНЛАЙН-МОДУЛЕЙ FIREBASE ---
 import { initializeApp } from "https://gstatic.com";
 import { getAuth } from "https://gstatic.com";
 import { getDatabase } from "https://gstatic.com";
 
-// Твой скопированный со скриншота конфиг
+// Твой уникальный подтвержденный конфиг из консоли Google
 const firebaseConfig = {
   apiKey: "AIzaSy880HS3qOzB5100hyp36DGZh2BU5_0p08w",
   authDomain: "://firebaseapp.com",
@@ -14,10 +14,10 @@ const firebaseConfig = {
   measurementId: "G-JJ530E031F"
 };
 
-// Запускаем онлайн-движок
+// Запуск облачного движка
 const app = initializeApp(firebaseConfig);
 
-// Экспортируем защищенные модули в глобальное окно window, чтобы их видели другие наши файлы
+// Регистрируем глобальные модули в системе, чтобы их видели будущие онлайн-файлы
 window.auth = getAuth(app);
 window.db = getDatabase(app);
 
