@@ -1,32 +1,192 @@
-// --- МОНОЛИТНАЯ ОНЛАЙН-СИНХРОНИЗАЦИЯ И МЕДИА-ПОТОК ЧЕРЕЗ FIREBASE ---
-import { ref, push, onValue } from "https://gstatic.com";
+// --- МОНОЛИТНАЯ ОНЛАЙН СИНХРОНИЗАЦИЯ ЧЕРЕЗ НЕЗАВИСИМЫЙ СЕРВЕР NODE.JS ---
+const SERVER_URL = "https://notes-club-server.onrender.com";
 
 window.addEventListener('DOMContentLoaded', () => {
   injectMediaStyles();
   injectUploadButton();
   
-  // Жестко перезаписываем глобальные функции управления заметками
-  window.sendPost = sendPostOnlineAndLocal;
+  // Перезаписываем глобальные функции управления заметками
+  window.sendPost = sendPostToNodeServer;
   window.loadLocalNotes = loadOnlyLocalNotes;
 
-  // Намертво привязываем клик кнопки «Отправить» к нашей новой сквозной функции
+  // Намертво привязываем клик кнопки «Отправить» к нашему новому серверу
   setTimeout(() => {
     const submitBtn = document.querySelector('.submit-glass-btn');
     if (submitBtn) {
       submitBtn.removeAttribute('onclick');
       const newBtn = submitBtn.cloneNode(true);
       submitBtn.parentNode.replaceChild(newBtn, submitBtn);
-      newBtn.addEventListener('click', sendPostOnlineAndLocal);
+      newBtn.addEventListener('click', sendPostToNodeServer);
     }
     
-    // Запускаем живой онлайн-приемник для вкладки Рекомендации
-    listenToOnlineRecommendations();
-    // Отрисовываем личные заметки
+    // Запускаем постоянный живой стрим с сервера для вкладки Рекомендации
+    listenToNodeRecommendations();
+    // Отрисовываем личные локальные заметки
     loadOnlyLocalNotes();
   }, 200);
 });
 
-// --- 1. ВНЕДРЕНИЕ СТИЛЕЙ КНОПКИ И АВТОРА ---
+// --- 1. ОТПРАВКА НА СЕРВЕР (ЛИЧНОЕ В LOCALSTORAGE, ПУБЛИЧНОЕ В СЕТЬ) ---
+async function sendPostToNodeServer() {
+  const textarea = document.getElementById('noteText');
+  const text = textarea.value.trim();
+  
+  if (!text && !window.recordedAudioBase64) return;
+
+  let currentAuthor = localStorage.getItem('notes_club_user') || localStorage.getItem('obsidian_username') || window.currentUsername || 'Пользователь';
+  const postDate = new Date().toLocaleString('ru-RU', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' });
+  const scope = window.currentScope || 'private';
+
+  const newNote = {
+    id: Date.now(),
+    text: text,
+    audio: window.recordedAudioBase64 || null,
+    scope: scope,
+    author: currentAuthor,
+    date: postDate
+  };
+
+  // Если ПУБЛИЧНОЕ — отправляем на наш новый быстрый Render сервер
+  if (scope === 'public') {
+    try {
+      const response = await fetch(`${SERVER_URL}/api/posts`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newNote)
+      });
+      if (response.ok) {
+        console.log("📡 Публичный пост успешно улетел на независимый сервер Render!");
+      }
+    } catch (err) {
+      console.error("Ошибка сети с сервером Render:", err);
+    }
+  }
+
+  // Дублируем в локальную историю "Заметки" автора
+  let localNotes = JSON.parse(localStorage.getItem('obsidian_notes') || '[]');
+  localNotes.unshift(newNote);
+  localStorage.setItem('obsidian_notes', JSON.stringify(localNotes));
+
+  // Полная очистка полей ввода
+  textarea.value = '';
+  window.recordedAudioBase64 = null;
+  const hf = document.getElementById('hidden-audio-file');
+  if (hf) hf.value = '';
+  textarea.placeholder = "Зафиксируй состояние или зажми микрофон...";
+  
+  loadOnlyLocalNotes();
+}
+
+// --- 2. ПОСТОЯННОЕ ОБНОВЛЕНИЕ РЕКОМЕНДАЦИЙ (ЖИВОЙ СТРИМ) ---
+function listenToNodeRecommendations() {
+  const recFeed = document.getElementById('recFeed');
+  if (!recFeed) return;
+
+  async function fetchPosts() {
+    // Делаем запрос только если пользователь находится на вкладке рекомендаций
+    if (recFeed.classList.contains('hidden')) return;
+
+    try {
+      const response = await fetch(`${SERVER_URL}/api/posts`);
+      if (!response.ok) return;
+      const onlinePosts = await response.json();
+
+      recFeed.innerHTML = ''; // Очищаем ленту для свежих данных
+
+      onlinePosts.forEach(note => {
+        const cardRec = document.createElement('div');
+        cardRec.className = 'glass-card';
+        cardRec.innerHTML = buildCardHTML(note, true);
+        
+        cardRec.onclick = (e) => {
+          if (!e.target.closest('.liquid-audio-player')) {
+            try {
+              if (typeof window.openOverlay === 'function') {
+                window.openOverlay(note.text ? escapeHTML(note.text) : "Медиазаметка");
+              }
+            } catch(err) { console.log(err); }
+          }
+        };
+
+        recFeed.appendChild(cardRec);
+      });
+
+      // Применяем суточный эффект затухания, если плагин подключен
+      if (typeof window.applyTimeDissolveEffect === 'function') {
+        window.applyTimeDissolveEffect();
+      }
+
+    } catch (err) {
+      console.log("Ожидание ответа от сервера...", err);
+    }
+  }
+
+  // Запрашиваем новые посты каждые 3 секунды, симулируя Websocket-соединение
+  fetchPosts();
+  setInterval(fetchPosts, 3000);
+}
+
+// --- 3. ШАБЛОН КАРТОЧЕК И ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ---
+function buildCardHTML(note, isRecommendation = false) {
+  let audioHtml = '';
+  if (note.audio) {
+    audioHtml = `
+      <div class="liquid-audio-player">
+        <button class="play-pause-btn" onclick="toggleAudio('audio-${note.id}')">
+          <div class="play-icon"></div>
+        </button>
+        <div class="player-timeline" onclick="seekAudio(event, 'audio-${note.id}')">
+          <div id="progress-audio-${note.id}" class="player-progress"></div>
+        </div>
+        <span id="time-audio-${note.id}" class="player-duration">0:00</span>
+        <audio id="audio-${note.id}" src="${note.audio}" ontimeupdate="updateAudioProgress('audio-${note.id}')" onended="audioEnded('audio-${note.id}')"></audio>
+      </div>
+    `;
+  }
+
+  const deleteBtnHtml = isRecommendation 
+    ? `<button class="delete-btn" style="display:none;">×</button>`
+    : `<button class="delete-btn" onclick="deleteNote(event, ${note.id})">×</button>`;
+
+  return `
+    ${deleteBtnHtml}
+    <div class="card-author">@${escapeHTML(note.author || "Аноним")}</div>
+    ${note.text ? `<div class="card-text">${escapeHTML(note.text)}</div>` : ''}
+    ${audioHtml}
+    <div class="card-meta">
+      <span>${note.date}</span>
+      <span>${note.scope === 'public' ? 'публичное' : 'личное'}</span>
+    </div>
+  `;
+}
+
+function loadOnlyLocalNotes() {
+  const myFeed = document.getElementById('myFeed');
+  if (!myFeed) return;
+
+  myFeed.innerHTML = '';
+  let notes = JSON.parse(localStorage.getItem('obsidian_notes') || '[]');
+
+  if (notes.length === 0) {
+    myFeed.innerHTML = '<div style="color: var(--text-muted); text-align: center; padding: 30px 0; font-size: 14px;">Поток пуст...</div>';
+    return;
+  }
+
+  notes.forEach(note => {
+    const cardMy = document.createElement('div');
+    cardMy.className = 'glass-card';
+    cardMy.innerHTML = buildCardHTML(note, false);
+    cardMy.onclick = (e) => {
+      if (!e.target.closest('.delete-btn') && !e.target.closest('.liquid-audio-player')) {
+        try {
+          if (typeof window.openOverlay === 'function') window.openOverlay(note.text ? escapeHTML(note.text) : "Медиазаметка");
+        } catch(err) { console.log(err); }
+      }
+    };
+    myFeed.appendChild(cardMy);
+  });
+}
+
 function injectMediaStyles() {
   if (document.getElementById('media-injected-styles')) return;
   const style = document.createElement('style');
@@ -73,7 +233,6 @@ function injectMediaStyles() {
   document.head.appendChild(style);
 }
 
-// --- 2. ВШИВАНИЕ КНОПКИ ЗАГРУЗКИ ТРЕКОВ ---
 function injectUploadButton() {
   const inputPanel = document.querySelector('.input-glass-panel');
   if (!inputPanel || document.getElementById('uploadBtn')) return;
@@ -111,168 +270,6 @@ function injectUploadButton() {
   });
 
   inputPanel.appendChild(uploadBtn);
-}
-
-// --- 3. ГЛАВНАЯ СКВОЗНАЯ ФУНКЦИЯ ОТПРАВКИ ---
-function sendPostOnlineAndLocal() {
-  const textarea = document.getElementById('noteText');
-  const text = textarea.value.trim();
-  
-  if (!text && !window.recordedAudioBase64) return;
-
-  let currentAuthor = localStorage.getItem('notes_club_user') || localStorage.getItem('obsidian_username') || window.currentUsername || 'Пользователь';
-  const postDate = new Date().toLocaleString('ru-RU', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit' });
-  const scope = window.currentScope || 'private';
-
-  const newNote = {
-    id: Date.now(),
-    text: text,
-    audio: window.recordedAudioBase64 || null,
-    scope: scope,
-    author: currentAuthor,
-    date: postDate
-  };
-
-  // ЕСЛИ ПУБЛИЧНОЕ — отправляем в облако
-  if (scope === 'public') {
-    try {
-      const postsRef = ref(window.db, 'global_posts');
-      push(postsRef, newNote);
-      console.log("📡 Публичный пост успешно улетел в онлайн-космос Firebase!");
-    } catch (err) {
-      console.error("Ошибка отправки в облако:", err);
-    }
-  }
-
-  // В любом случае дублируем в локальную ленту автора
-  let localNotes = JSON.parse(localStorage.getItem('obsidian_notes') || '[]');
-  localNotes.unshift(newNote);
-  localStorage.setItem('obsidian_notes', JSON.stringify(localNotes));
-
-  // Очищаем форму ввода
-  textarea.value = '';
-  window.recordedAudioBase64 = null;
-  const hf = document.getElementById('hidden-audio-file');
-  if (hf) hf.value = '';
-  textarea.placeholder = "Зафиксируй состояние или зажми микрофон...";
-  
-  // Принудительно заставляем перерисоваться локальную вкладку
-  loadOnlyLocalNotes();
-}
-
-// --- 4. СБОРКА ШАБЛОНА СТЕКЛЯННОЙ КАРТОЧКИ ---
-function buildCardHTML(note, isRecommendation = false) {
-  let audioHtml = '';
-  if (note.audio) {
-    audioHtml = `
-      <div class="liquid-audio-player">
-        <button class="play-pause-btn" onclick="toggleAudio('audio-${note.id}')">
-          <div class="play-icon"></div>
-        </button>
-        <div class="player-timeline" onclick="seekAudio(event, 'audio-${note.id}')">
-          <div id="progress-audio-${note.id}" class="player-progress"></div>
-        </div>
-        <span id="time-audio-${note.id}" class="player-duration">0:00</span>
-        <audio id="audio-${note.id}" src="${note.audio}" ontimeupdate="updateAudioProgress('audio-${note.id}')" onended="audioEnded('audio-${note.id}')"></audio>
-      </div>
-    `;
-  }
-
-  const deleteBtnHtml = isRecommendation 
-    ? `<button class="delete-btn" style="display:none;">×</button>`
-    : `<button class="delete-btn" onclick="deleteNote(event, ${note.id})">×</button>`;
-
-  return `
-    ${deleteBtnHtml}
-    <div class="card-author">@${escapeHTML(note.author || "Аноним")}</div>
-    ${note.text ? `<div class="card-text">${escapeHTML(note.text)}</div>` : ''}
-    ${audioHtml}
-    <div class="card-meta">
-      <span>${note.date}</span>
-      <span>${note.scope === 'public' ? 'публичное' : 'личное'}</span>
-    </div>
-  `;
-}
-
-// --- 5. ОТРИСОВКА ЛОКАЛЬНЫХ ЗАМЕТОК ---
-function loadOnlyLocalNotes() {
-  const myFeed = document.getElementById('myFeed');
-  if (!myFeed) return;
-
-  myFeed.innerHTML = '';
-  let notes = JSON.parse(localStorage.getItem('obsidian_notes') || '[]');
-
-  if (notes.length === 0) {
-    myFeed.innerHTML = '<div style="color: var(--text-muted); text-align: center; padding: 30px 0; font-size: 14px;">Поток пуст...</div>';
-    return;
-  }
-
-  notes.forEach(note => {
-    const cardMy = document.createElement('div');
-    cardMy.className = 'glass-card';
-    cardMy.innerHTML = buildCardHTML(note, false);
-    cardMy.onclick = (e) => {
-      if (!e.target.closest('.delete-btn') && !e.target.closest('.liquid-audio-player')) {
-        try {
-          if (typeof window.openOverlay === 'function') window.openOverlay(note.text ? escapeHTML(note.text) : "Медиазаметка");
-        } catch(err) { console.log(err); }
-      }
-    };
-    myFeed.appendChild(cardMy);
-  });
-}
-
-// --- 6. ХОСТИНГ ЖИВОГО СТРИМА С ЗАЩИТОЙ ОТ СБОЕВ РЕНДЕРА ---
-function listenToOnlineRecommendations() {
-  const recFeed = document.getElementById('recFeed');
-  if (!recFeed) return;
-
-  const postsRef = ref(window.db, 'global_posts');
-
-  onValue(postsRef, (snapshot) => {
-    recFeed.innerHTML = ''; 
-
-    recFeed.innerHTML = `
-      <div class="glass-card">
-        <div class="card-author">@system</div>
-        <div class="card-text">Всё вокруг кажется симуляцией, пока ты не зальешь это в клуб. Первое децентрализованное PWA-приложение запущено.</div>
-        <div class="card-meta">
-          <span>системный поток</span>
-          <span>публичное</span>
-        </div>
-      </div>
-    `;
-
-    const data = snapshot.val();
-    if (!data) return;
-
-    const onlinePosts = Object.values(data).reverse();
-
-    onlinePosts.forEach(note => {
-      const cardRec = document.createElement('div');
-      cardRec.className = 'glass-card';
-      cardRec.innerHTML = buildCardHTML(note, true);
-      
-      cardRec.onclick = (e) => {
-        if (!e.target.closest('.liquid-audio-player')) {
-          try {
-            if (typeof window.openOverlay === 'function') {
-              window.openOverlay(note.text ? escapeHTML(note.text) : "Медиазаметка");
-            }
-          } catch(err) { console.log(err); }
-        }
-      };
-
-      recFeed.appendChild(cardRec);
-    });
-
-    // Безопасный вызов эффектов растворения времени
-    try {
-      if (typeof window.applyTimeDissolveEffect === 'function') {
-        window.applyTimeDissolveEffect();
-      }
-    } catch(err) { console.log(err); }
-  });
 }
 
 function escapeHTML(str) {
